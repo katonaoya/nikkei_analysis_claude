@@ -1,0 +1,97 @@
+# 実運用トレーディングシステム設定
+
+# データ収集設定
+data_collection:
+  # デフォルトのデータ取得期間（日数）
+  default_days: 30
+  # バッチサイズ（API負荷軽減）
+  batch_size: 5
+  # バッチ間の遅延（秒）
+  delay_between_batches: 1.0
+  # リクエスト間の遅延（秒）
+  delay_between_requests: 0.5
+
+# 特徴量生成設定
+features:
+  # 移動平均期間
+  ma_periods: [5, 10, 20, 60]
+  # RSI期間
+  rsi_period: 14
+  # ボリンジャーバンド期間
+  bb_period: 20
+  bb_std: 2
+  # ボラティリティ計算期間
+  volatility_window: 20
+
+# モデル訓練設定
+models:
+  # 回帰モデル設定
+  regression:
+    # 使用するモデル
+    algorithms: ["linear_regression", "random_forest"]
+    # テストデータの割合
+    test_size: 0.2
+    # 時系列分割を使用
+    time_split: true
+    # Random Forest設定
+    random_forest:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 5
+      random_state: 42
+
+  # 分類モデル設定  
+  classification:
+    algorithms: ["logistic_regression", "random_forest"]
+    test_size: 0.2
+    time_split: true
+    random_forest:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 5
+      random_state: 42
+
+# 予測設定
+predictions:
+  # 表示する上位銘柄数
+  top_n: 10
+  # 信頼度しきい値
+  confidence_threshold: 0.6
+  # 予測結果の保存
+  save_results: true
+
+# ログ設定
+logging:
+  level: "INFO"
+  file: "trading_pipeline.log"
+  max_file_size: "10MB"
+  backup_count: 5
+
+# 出力設定
+output:
+  # レポート保存
+  save_reports: true
+  # 予測結果のCSV出力
+  save_predictions_csv: true
+  # 詳細ログの出力
+  verbose: true
+
+# リスク管理設定（将来拡張用）
+risk_management:
+  # 最大ポジション数
+  max_positions: 10
+  # 最大投資金額の割合
+  max_position_size: 0.1
+  # 損切りしきい値
+  stop_loss_threshold: -0.05
+  # 利確しきい値
+  take_profit_threshold: 0.1
+
+# アラート設定（将来拡張用）
+alerts:
+  # 高確信度予測のしきい値
+  high_confidence_threshold: 0.8
+  # 異常値検知のしきい値
+  anomaly_threshold: 3.0
+  # 通知方法
+  notification_methods: ["log", "file"]

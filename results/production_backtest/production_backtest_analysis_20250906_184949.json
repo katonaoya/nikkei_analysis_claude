@@ -1,0 +1,15 @@
+{
+  "summary": {
+    "total_trades": 135,
+    "profitable_trades": 4,
+    "loss_trades": 5,
+    "win_rate": 0.02962962962962963,
+    "total_profit": -8576.70825022969,
+    "avg_return_per_trade": -0.0003176558611196182,
+    "avg_holding_days": 0.3925925925925926,
+    "initial_capital": 1000000,
+    "final_capital": 991423.2917497703,
+    "total_return_rate": -0.00857670825022969,
+    "analysis_period": "2025-08-01 ~ 2025-09-05"
+  }
+}

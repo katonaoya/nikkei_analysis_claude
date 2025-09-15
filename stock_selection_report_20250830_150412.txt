@@ -1,0 +1,39 @@
+DAILY STOCK SELECTION REPORT
+==================================================
+
+SELECTION SUMMARY
+--------------------
+Analysis Date: 2025-08-30 15:04:12.679503
+Stocks Analyzed: 20
+Final Selections: 3
+Effective Threshold: 0.780
+Threshold Adjustment: +0.030
+
+SELECTED STOCKS
+---------------
+Rank 1: 7011
+  Probability: 0.942
+  Confidence: very_high
+  Price: ¥4101
+  Volume: 476,896
+
+Rank 2: 7001
+  Probability: 0.938
+  Confidence: very_high
+  Price: ¥2981
+  Volume: 124,300
+
+Rank 3: 7007
+  Probability: 0.917
+  Confidence: very_high
+  Price: ¥3080
+  Volume: 317,851
+
+EXTRACTION STATISTICS
+--------------------
+Selection Rate: 15.00%
+Mean Probability: 0.932
+Probability Range: 0.917 - 0.942
+
+Confidence Categories:
+  very_high: 3

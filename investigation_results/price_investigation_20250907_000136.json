@@ -1,0 +1,2994 @@
+{
+  "investigation_data": {
+    "investigation_date": "2025-09-07T00:01:36.288251",
+    "analyzed_reports": 3,
+    "results": [
+      {
+        "report_info": {
+          "report_file": "20250801_prediction_report.md",
+          "report_date": "2025-08-01",
+          "target_date": "2025-08-01",
+          "generation_time": "2025-07-31 17:00",
+          "stock_prices": [
+            {
+              "rank": 1,
+              "company": "ソフトバンクG",
+              "code": "9984",
+              "price": 4716.0,
+              "probability": 90.5,
+              "context": "- **現在価格**: 14,816円",
+              "technical_indicators": [
+                "**期待高値**: 4,763円 (+1.0%以上)",
+                "**信頼度**: 極高",
+                "**技術シグナル**:",
+                "50日MA反発 (73.0)",
+                "MA_5とMA_20ゴールデンクロス"
+              ]
+            }
+          ],
+          "full_content_length": 1245
+        },
+        "stock_analyses": [
+          {
+            "report_stock_info": {
+              "rank": 1,
+              "company": "ソフトバンクG",
+              "code": "9984",
+              "price": 4716.0,
+              "probability": 90.5,
+              "context": "- **現在価格**: 14,816円",
+              "technical_indicators": [
+                "**期待高値**: 4,763円 (+1.0%以上)",
+                "**信頼度**: 極高",
+                "**技術シグナル**:",
+                "50日MA反発 (73.0)",
+                "MA_5とMA_20ゴールデンクロス"
+              ]
+            },
+            "multi_date_analysis": [
+              {
+                "code": "9984",
+                "company": "ソフトバンクG",
+                "target_date": "2025-08-02",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 11275.0,
+                        "high": 11635.0,
+                        "low": 11275.0,
+                        "close": 11580.0,
+                        "volume": 5918400.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 11275.0,
+                        "high": 11635.0,
+                        "low": 11275.0,
+                        "close": 11580.0,
+                        "volume": 5918400.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "9984",
+                "company": "ソフトバンクG",
+                "target_date": "2025-07-30",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 11675.0,
+                        "high": 11845.0,
+                        "low": 11475.0,
+                        "close": 11500.0,
+                        "volume": 5296900.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 11775.0,
+                        "high": 11795.0,
+                        "low": 11510.0,
+                        "close": 11560.0,
+                        "volume": 5612500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-28 00:00:00",
+                        "open": 12400.0,
+                        "high": 12470.0,
+                        "low": 11705.0,
+                        "close": 11725.0,
+                        "volume": 9735100.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 11675.0,
+                        "high": 11845.0,
+                        "low": 11475.0,
+                        "close": 11500.0,
+                        "volume": 5296900.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 11775.0,
+                        "high": 11795.0,
+                        "low": 11510.0,
+                        "close": 11560.0,
+                        "volume": 5612500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-28 00:00:00",
+                        "open": 12400.0,
+                        "high": 12470.0,
+                        "low": 11705.0,
+                        "close": 11725.0,
+                        "volume": 9735100.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "9984",
+                "company": "ソフトバンクG",
+                "target_date": "2025-07-31",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 11675.0,
+                        "high": 11845.0,
+                        "low": 11475.0,
+                        "close": 11500.0,
+                        "volume": 5296900.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 11775.0,
+                        "high": 11795.0,
+                        "low": 11510.0,
+                        "close": 11560.0,
+                        "volume": 5612500.0,
+                        "days_from_target": -2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 11370.0,
+                        "high": 11985.0,
+                        "low": 11330.0,
+                        "close": 11810.0,
+                        "volume": 9433200.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 11675.0,
+                        "high": 11845.0,
+                        "low": 11475.0,
+                        "close": 11500.0,
+                        "volume": 5296900.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 11350.0,
+                        "high": 11650.0,
+                        "low": 11280.0,
+                        "close": 11585.0,
+                        "volume": 7107200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 11775.0,
+                        "high": 11795.0,
+                        "low": 11510.0,
+                        "close": 11560.0,
+                        "volume": 5612500.0,
+                        "days_from_target": -2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "report_info": {
+          "report_file": "20250802_prediction_report.md",
+          "report_date": "2025-08-02",
+          "target_date": null,
+          "generation_time": "2025-08-01 17:00",
+          "stock_prices": [
+            {
+              "rank": 1,
+              "company": "フリー",
+              "code": "4478",
+              "price": 7180.0,
+              "probability": 92.1,
+              "context": "- **現在価格**: 3,142円",
+              "technical_indicators": [
+                "**期待高値**: 7,252円 (+1.0%以上)",
+                "**信頼度**: 極高",
+                "**技術シグナル**:",
+                "MA全線上向き",
+                "RSI好調維持 (68.9)"
+              ]
+            }
+          ],
+          "full_content_length": 1195
+        },
+        "stock_analyses": [
+          {
+            "report_stock_info": {
+              "rank": 1,
+              "company": "フリー",
+              "code": "4478",
+              "price": 7180.0,
+              "probability": 92.1,
+              "context": "- **現在価格**: 3,142円",
+              "technical_indicators": [
+                "**期待高値**: 7,252円 (+1.0%以上)",
+                "**信頼度**: 極高",
+                "**技術シグナル**:",
+                "MA全線上向き",
+                "RSI好調維持 (68.9)"
+              ]
+            },
+            "multi_date_analysis": [
+              {
+                "code": "4478",
+                "company": "フリー",
+                "target_date": "2025-08-02",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 4115.0,
+                        "high": 4195.0,
+                        "low": 4100.0,
+                        "close": 4195.0,
+                        "volume": 188500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 4020.0,
+                        "high": 4120.0,
+                        "low": 4015.0,
+                        "close": 4115.0,
+                        "volume": 269000.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 4195.0,
+                        "high": 4310.0,
+                        "low": 4125.0,
+                        "close": 4255.0,
+                        "volume": 439100.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 4115.0,
+                        "high": 4195.0,
+                        "low": 4100.0,
+                        "close": 4195.0,
+                        "volume": 188500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 4020.0,
+                        "high": 4120.0,
+                        "low": 4015.0,
+                        "close": 4115.0,
+                        "volume": 269000.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 4195.0,
+                        "high": 4310.0,
+                        "low": 4125.0,
+                        "close": 4255.0,
+                        "volume": 439100.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "4478",
+                "company": "フリー",
+                "target_date": "2025-08-04",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 4195.0,
+                        "high": 4310.0,
+                        "low": 4125.0,
+                        "close": 4255.0,
+                        "volume": 439100.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 4300.0,
+                        "high": 4330.0,
+                        "low": 4235.0,
+                        "close": 4255.0,
+                        "volume": 255200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 4215.0,
+                        "high": 4230.0,
+                        "low": 3915.0,
+                        "close": 3925.0,
+                        "volume": 525300.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 4195.0,
+                        "high": 4310.0,
+                        "low": 4125.0,
+                        "close": 4255.0,
+                        "volume": 439100.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 4300.0,
+                        "high": 4330.0,
+                        "low": 4235.0,
+                        "close": 4255.0,
+                        "volume": 255200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 4215.0,
+                        "high": 4230.0,
+                        "low": 3915.0,
+                        "close": 3925.0,
+                        "volume": 525300.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "4478",
+                "company": "フリー",
+                "target_date": "2025-07-31",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 4020.0,
+                        "high": 4120.0,
+                        "low": 4015.0,
+                        "close": 4115.0,
+                        "volume": 269000.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 4150.0,
+                        "high": 4150.0,
+                        "low": 4010.0,
+                        "close": 4070.0,
+                        "volume": 329500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 4115.0,
+                        "high": 4195.0,
+                        "low": 4100.0,
+                        "close": 4195.0,
+                        "volume": 188500.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 4215.0,
+                        "high": 4220.0,
+                        "low": 4080.0,
+                        "close": 4155.0,
+                        "volume": 343700.0,
+                        "days_from_target": -2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 4020.0,
+                        "high": 4120.0,
+                        "low": 4015.0,
+                        "close": 4115.0,
+                        "volume": 269000.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-07-30 00:00:00",
+                        "open": 4150.0,
+                        "high": 4150.0,
+                        "low": 4010.0,
+                        "close": 4070.0,
+                        "volume": 329500.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 4115.0,
+                        "high": 4195.0,
+                        "low": 4100.0,
+                        "close": 4195.0,
+                        "volume": 188500.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-07-29 00:00:00",
+                        "open": 4215.0,
+                        "high": 4220.0,
+                        "low": 4080.0,
+                        "close": 4155.0,
+                        "volume": 343700.0,
+                        "days_from_target": -2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "report_info": {
+          "report_file": "20250804_prediction_report.md",
+          "report_date": "2025-08-04",
+          "target_date": "2025-08-04",
+          "generation_time": "2025-08-03 17:00",
+          "stock_prices": [
+            {
+              "rank": 1,
+              "company": "リクルートHD",
+              "code": "6098",
+              "price": 4507.0,
+              "probability": 89.6,
+              "context": "- **現在価格**: 8,766円",
+              "technical_indicators": [
+                "**期待高値**: 4,552円 (+1.0%以上)",
+                "**信頼度**: 高",
+                "**技術シグナル**:",
+                "ボリンジャーバンド上限近接 (68.1)",
+                "出来高急増"
+              ]
+            }
+          ],
+          "full_content_length": 1232
+        },
+        "stock_analyses": [
+          {
+            "report_stock_info": {
+              "rank": 1,
+              "company": "リクルートHD",
+              "code": "6098",
+              "price": 4507.0,
+              "probability": 89.6,
+              "context": "- **現在価格**: 8,766円",
+              "technical_indicators": [
+                "**期待高値**: 4,552円 (+1.0%以上)",
+                "**信頼度**: 高",
+                "**技術シグナル**:",
+                "ボリンジャーバンド上限近接 (68.1)",
+                "出来高急増"
+              ]
+            },
+            "multi_date_analysis": [
+              {
+                "code": "6098",
+                "company": "リクルートHD",
+                "target_date": "2025-08-02",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 9185.0,
+                        "high": 9256.0,
+                        "low": 9001.0,
+                        "close": 9090.0,
+                        "volume": 4138200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 8950.0,
+                        "high": 9091.0,
+                        "low": 8905.0,
+                        "close": 9052.0,
+                        "volume": 3334800.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-01 00:00:00",
+                        "open": 9185.0,
+                        "high": 9256.0,
+                        "low": 9001.0,
+                        "close": 9090.0,
+                        "volume": 4138200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-07-31 00:00:00",
+                        "open": 8950.0,
+                        "high": 9091.0,
+                        "low": 8905.0,
+                        "close": 9052.0,
+                        "volume": 3334800.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "6098",
+                "company": "リクルートHD",
+                "target_date": "2025-08-06",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 8600.0,
+                        "high": 8722.0,
+                        "low": 8277.0,
+                        "close": 8334.0,
+                        "volume": 6119300.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 8703.0,
+                        "high": 8840.0,
+                        "low": 8648.0,
+                        "close": 8719.0,
+                        "volume": 3573200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-07 00:00:00",
+                        "open": 8390.0,
+                        "high": 8462.0,
+                        "low": 8220.0,
+                        "close": 8281.0,
+                        "volume": 5496300.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-08 00:00:00",
+                        "open": 8325.0,
+                        "high": 8567.0,
+                        "low": 8280.0,
+                        "close": 8503.0,
+                        "volume": 6098800.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 8600.0,
+                        "high": 8722.0,
+                        "low": 8277.0,
+                        "close": 8334.0,
+                        "volume": 6119300.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 8703.0,
+                        "high": 8840.0,
+                        "low": 8648.0,
+                        "close": 8719.0,
+                        "volume": 3573200.0,
+                        "days_from_target": -1
+                      },
+                      {
+                        "date": "2025-08-07 00:00:00",
+                        "open": 8390.0,
+                        "high": 8462.0,
+                        "low": 8220.0,
+                        "close": 8281.0,
+                        "volume": 5496300.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": -2
+                      },
+                      {
+                        "date": "2025-08-08 00:00:00",
+                        "open": 8325.0,
+                        "high": 8567.0,
+                        "low": 8280.0,
+                        "close": 8503.0,
+                        "volume": 6098800.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              },
+              {
+                "code": "6098",
+                "company": "リクルートHD",
+                "target_date": "2025-08-04",
+                "data_sources": [
+                  {
+                    "source": "enhanced_jquants",
+                    "status": "found",
+                    "file": "enhanced_jquants_40725records_20250906_170647.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 8703.0,
+                        "high": 8840.0,
+                        "low": 8648.0,
+                        "close": 8719.0,
+                        "volume": 3573200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 8600.0,
+                        "high": 8722.0,
+                        "low": 8277.0,
+                        "close": 8334.0,
+                        "volume": 6119300.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "nikkei225_full",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_full_530744records_20250906_171825.parquet"
+                  },
+                  {
+                    "source": "features_10years_full_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_full_20250831.parquet"
+                  },
+                  {
+                    "source": "integrated_with_external",
+                    "status": "no_stock_data",
+                    "file": "integrated_with_external.parquet"
+                  },
+                  {
+                    "source": "processed_ultra_clean",
+                    "status": "no_stock_data",
+                    "file": "processed_ultra_clean.parquet"
+                  },
+                  {
+                    "source": "real_jquants_data",
+                    "status": "found",
+                    "file": "real_jquants_data.parquet",
+                    "price_data": [
+                      {
+                        "date": "2025-08-04 00:00:00",
+                        "open": 8640.0,
+                        "high": 8726.0,
+                        "low": 8530.0,
+                        "close": 8579.0,
+                        "volume": 5682400.0,
+                        "days_from_target": 0
+                      },
+                      {
+                        "date": "2025-08-05 00:00:00",
+                        "open": 8703.0,
+                        "high": 8840.0,
+                        "low": 8648.0,
+                        "close": 8719.0,
+                        "volume": 3573200.0,
+                        "days_from_target": 1
+                      },
+                      {
+                        "date": "2025-08-06 00:00:00",
+                        "open": 8600.0,
+                        "high": 8722.0,
+                        "low": 8277.0,
+                        "close": 8334.0,
+                        "volume": 6119300.0,
+                        "days_from_target": 2
+                      }
+                    ],
+                    "total_records": 735,
+                    "date_range": "2022-09-07 ~ 2025-09-05"
+                  },
+                  {
+                    "source": "features_pipeline_20250831_135511",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250831_135511.parquet"
+                  },
+                  {
+                    "source": "processed_cleaned",
+                    "status": "no_stock_data",
+                    "file": "processed_cleaned.parquet"
+                  },
+                  {
+                    "source": "enhanced_features",
+                    "status": "no_stock_data",
+                    "file": "enhanced_features.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_20250903_005524",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_20250903_005524.parquet"
+                  },
+                  {
+                    "source": "features_2024_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_2024_20250831.parquet"
+                  },
+                  {
+                    "source": "features_all_years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_all_years_20250831.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165342",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165342.parquet"
+                  },
+                  {
+                    "source": "features_simple_20250830_163800",
+                    "status": "no_stock_data",
+                    "file": "features_simple_20250830_163800.parquet"
+                  },
+                  {
+                    "source": "integrated_backup_before_external_20250903_010708",
+                    "status": "no_stock_data",
+                    "file": "integrated_backup_before_external_20250903_010708.parquet"
+                  },
+                  {
+                    "source": "features_pipeline_20250830_165317",
+                    "status": "no_stock_data",
+                    "file": "features_pipeline_20250830_165317.parquet"
+                  },
+                  {
+                    "source": "features_10years_20250831",
+                    "status": "no_stock_data",
+                    "file": "features_10years_20250831.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161834.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-01-01_2025-08-30_20250830_200315.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-01_2025-08-30_20250830_162118.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-25_2025-08-30_20250830_161749.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2025-08-30_2025-09-03_20250903_005428.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2016-01-01_2016-12-31_20250830_192150.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2018-01-01_2018-12-31_20250830_193053.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2023-01-01_2023-12-31_20250830_195547.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-01-01_2024-12-31_20250830_195947.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2024-09-02_2024-09-02_20250903_004055.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2021-01-01_2021-12-31_20250830_194759.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2022-01-01_2022-12-31_20250830_195139.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2020-01-01_2020-12-31_20250830_194439.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2017-01-01_2017-12-31_20250830_192511.parquet"
+                  },
+                  {
+                    "source": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641",
+                    "status": "no_stock_data",
+                    "file": "nikkei225_historical_2019-01-01_2019-12-31_20250830_193641.parquet"
+                  },
+                  {
+                    "source": "short_selling_positions",
+                    "status": "no_stock_data",
+                    "file": "short_selling_positions.parquet"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "root_cause_analysis": {
+    "patterns": {
+      "price_scale_issues": [
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11580.0,
+          "diff_pct": -59.27461139896373,
+          "source": "enhanced_jquants",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11580.0,
+          "diff_pct": -59.27461139896373,
+          "source": "real_jquants_data",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11500.0,
+          "diff_pct": -58.99130434782609,
+          "source": "enhanced_jquants",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11560.0,
+          "diff_pct": -59.20415224913494,
+          "source": "enhanced_jquants",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11725.0,
+          "diff_pct": -59.778251599147126,
+          "source": "enhanced_jquants",
+          "date": "2025-07-28 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11500.0,
+          "diff_pct": -58.99130434782609,
+          "source": "real_jquants_data",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11560.0,
+          "diff_pct": -59.20415224913494,
+          "source": "real_jquants_data",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11725.0,
+          "diff_pct": -59.778251599147126,
+          "source": "real_jquants_data",
+          "date": "2025-07-28 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11500.0,
+          "diff_pct": -58.99130434782609,
+          "source": "enhanced_jquants",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11560.0,
+          "diff_pct": -59.20415224913494,
+          "source": "enhanced_jquants",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11810.0,
+          "diff_pct": -60.06773920406435,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11500.0,
+          "diff_pct": -58.99130434782609,
+          "source": "real_jquants_data",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11585.0,
+          "diff_pct": -59.2921881743634,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "ソフトバンクG",
+          "code": "9984",
+          "report_price": 4716.0,
+          "actual_price": 11560.0,
+          "diff_pct": -59.20415224913494,
+          "source": "real_jquants_data",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4195.0,
+          "diff_pct": 71.15613825983314,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4115.0,
+          "diff_pct": 74.48359659781289,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "enhanced_jquants",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4195.0,
+          "diff_pct": 71.15613825983314,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4115.0,
+          "diff_pct": 74.48359659781289,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "real_jquants_data",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "enhanced_jquants",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "enhanced_jquants",
+          "date": "2025-08-05 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 3925.0,
+          "diff_pct": 82.92993630573248,
+          "source": "enhanced_jquants",
+          "date": "2025-08-06 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "real_jquants_data",
+          "date": "2025-08-04 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4255.0,
+          "diff_pct": 68.74265569917743,
+          "source": "real_jquants_data",
+          "date": "2025-08-05 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 3925.0,
+          "diff_pct": 82.92993630573248,
+          "source": "real_jquants_data",
+          "date": "2025-08-06 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4115.0,
+          "diff_pct": 74.48359659781289,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4070.0,
+          "diff_pct": 76.41277641277642,
+          "source": "enhanced_jquants",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4195.0,
+          "diff_pct": 71.15613825983314,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4155.0,
+          "diff_pct": 72.80385078219012,
+          "source": "enhanced_jquants",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4115.0,
+          "diff_pct": 74.48359659781289,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4070.0,
+          "diff_pct": 76.41277641277642,
+          "source": "real_jquants_data",
+          "date": "2025-07-30 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4195.0,
+          "diff_pct": 71.15613825983314,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "フリー",
+          "code": "4478",
+          "report_price": 7180.0,
+          "actual_price": 4155.0,
+          "diff_pct": 72.80385078219012,
+          "source": "real_jquants_data",
+          "date": "2025-07-29 00:00:00"
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "report_price": 4507.0,
+          "actual_price": 9090.0,
+          "diff_pct": -50.41804180418041,
+          "source": "enhanced_jquants",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "report_price": 4507.0,
+          "actual_price": 9052.0,
+          "diff_pct": -50.20989836500222,
+          "source": "enhanced_jquants",
+          "date": "2025-07-31 00:00:00"
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "report_price": 4507.0,
+          "actual_price": 9090.0,
+          "diff_pct": -50.41804180418041,
+          "source": "real_jquants_data",
+          "date": "2025-08-01 00:00:00"
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "report_price": 4507.0,
+          "actual_price": 9052.0,
+          "diff_pct": -50.20989836500222,
+          "source": "real_jquants_data",
+          "date": "2025-07-31 00:00:00"
+        }
+      ],
+      "date_mismatches": [],
+      "data_source_inconsistencies": [],
+      "potential_mock_data": [],
+      "adjustment_factor_issues": [
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 9090.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 9052.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 9090.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 9052.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8334.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8719.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8281.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8503.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8334.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8719.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8281.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8503.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8719.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8334.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8579.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8719.0
+        },
+        {
+          "company": "リクルートHD",
+          "code": "6098",
+          "ratio": 0.5,
+          "report_price": 4507.0,
+          "actual_price": 8334.0
+        }
+      ]
+    },
+    "root_causes": [
+      {
+        "cause": "データソース間のスケール不整合",
+        "evidence_count": 48,
+        "confidence": "高",
+        "description": "レポートと実データで価格のスケールが大幅に異なる"
+      },
+      {
+        "cause": "株価調整係数の問題",
+        "evidence_count": 22,
+        "confidence": "中",
+        "description": "株式分割等の調整が正しく処理されていない可能性"
+      }
+    ],
+    "recommendations": [
+      {
+        "priority": "最高",
+        "action": "データソース統一",
+        "description": "全ての価格データを単一の信頼できるソースに統一する",
+        "implementation": "1. 最も正確なデータソースを特定 2. 全システムで統一使用"
+      },
+      {
+        "priority": "高",
+        "action": "価格データ検証システム構築",
+        "description": "リアルタイムで市場価格との整合性をチェック",
+        "implementation": "1. 外部価格API連携 2. 自動アラート機能"
+      },
+      {
+        "priority": "中",
+        "action": "バックテスト再実行",
+        "description": "正確な価格データでバックテストを再実行",
+        "implementation": "1. 修正データでの完全再計算 2. 結果比較レポート作成"
+      }
+    ]
+  }
+}

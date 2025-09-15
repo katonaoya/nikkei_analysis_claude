@@ -1,0 +1,353 @@
+2025-08-30 21:20:15,013 - __main__ - INFO - Starting Step 2 Implementation Validation
+2025-08-30 21:20:15,014 - __main__ - INFO - Starting comprehensive ensemble integration test
+2025-08-30 21:20:15,014 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,014 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:20:15,024 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:20:15,063 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:20:15,064 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:20:15,064 - __main__ - ERROR - ❌ Feature engineering test failed: name 'logging' is not defined
+2025-08-30 21:20:15,065 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 142, in test_feature_engineering
+    feature_engineer = FeatureEngineer()
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 42, in __init__
+    self.market = MarketFeatures(self.raw_dir)
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/market_features.py", line 24, in __init__
+    self.logger = logging.getLogger(__name__)
+NameError: name 'logging' is not defined
+
+2025-08-30 21:20:15,065 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,065 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:20:15,185 - __main__ - ERROR - ❌ Individual models test failed: No module named 'utils'
+2025-08-30 21:20:15,186 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 183, in test_individual_models
+    from models.lightgbm_model import LightGBMModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/__init__.py", line 5, in <module>
+    from .base_model import BaseModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/base_model.py", line 12, in <module>
+    from utils.logger import get_logger
+ModuleNotFoundError: No module named 'utils'
+
+2025-08-30 21:20:15,186 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,186 - __main__ - INFO - === Testing Ensemble Integration ===
+2025-08-30 21:20:15,186 - __main__ - ERROR - ❌ Ensemble integration test failed: No module named 'utils'
+2025-08-30 21:20:15,186 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 269, in test_ensemble_integration
+    from models.ensemble_model import EnsembleModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/__init__.py", line 5, in <module>
+    from .base_model import BaseModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/base_model.py", line 12, in <module>
+    from utils.logger import get_logger
+ModuleNotFoundError: No module named 'utils'
+
+2025-08-30 21:20:15,186 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,186 - __main__ - INFO - === Testing Calibration Optimizer ===
+2025-08-30 21:20:15,187 - __main__ - ERROR - ❌ Calibration optimizer test failed: No module named 'utils'
+2025-08-30 21:20:15,187 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 351, in test_calibration_optimizer
+    from models.calibration_optimizer import CalibrationOptimizer
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/__init__.py", line 5, in <module>
+    from .base_model import BaseModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/base_model.py", line 12, in <module>
+    from utils.logger import get_logger
+ModuleNotFoundError: No module named 'utils'
+
+2025-08-30 21:20:15,187 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,187 - __main__ - INFO - === Testing Hyperparameter Optimizer (Quick Test) ===
+2025-08-30 21:20:15,187 - __main__ - ERROR - ❌ Hyperparameter optimizer test failed: No module named 'utils'
+2025-08-30 21:20:15,188 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 415, in test_hyperparameter_optimizer
+    from models.hyperparameter_optimizer import HyperparameterOptimizer
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/__init__.py", line 5, in <module>
+    from .base_model import BaseModel
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/models/base_model.py", line 12, in <module>
+    from utils.logger import get_logger
+ModuleNotFoundError: No module named 'utils'
+
+2025-08-30 21:20:15,188 - __main__ - INFO - 
+============================================================
+2025-08-30 21:20:15,188 - __main__ - INFO - COMPREHENSIVE TEST RESULTS
+2025-08-30 21:20:15,188 - __main__ - INFO - ============================================================
+2025-08-30 21:20:15,188 - __main__ - INFO - FEATURE ENGINEERING: ❌ FAILED
+2025-08-30 21:20:15,188 - __main__ - INFO - INDIVIDUAL MODELS: ❌ FAILED
+2025-08-30 21:20:15,188 - __main__ - INFO - ENSEMBLE INTEGRATION: ❌ FAILED
+2025-08-30 21:20:15,188 - __main__ - INFO - CALIBRATION OPTIMIZER: ❌ FAILED
+2025-08-30 21:20:15,188 - __main__ - INFO - HYPERPARAMETER OPTIMIZER: ❌ FAILED
+2025-08-30 21:20:15,188 - __main__ - INFO - ============================================================
+2025-08-30 21:20:15,188 - __main__ - ERROR - ❌ SOME TESTS FAILED! Please review and fix the issues before proceeding.
+2025-08-30 21:20:15,188 - __main__ - INFO - ============================================================
+2025-08-30 21:20:15,188 - __main__ - ERROR - 
+❌ VALIDATION FAILED - Issues need to be resolved
+2025-08-30 21:21:47,127 - __main__ - INFO - Starting Step 2 Implementation Validation
+2025-08-30 21:21:47,128 - __main__ - INFO - Starting comprehensive ensemble integration test
+2025-08-30 21:21:47,128 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:47,128 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:21:47,136 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:21:47,172 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:21:47,172 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:21:47,184 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:21:47,184 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:21:47,184 - __main__ - ERROR - ❌ Feature engineering test failed: __enter__
+2025-08-30 21:21:47,185 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 915, in calculate_all_indicators
+    with with_error_context("calculating all enhanced technical indicators"):
+AttributeError: __enter__
+
+2025-08-30 21:21:47,186 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:47,186 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:21:51,485 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:21:51,485 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:21:51,506 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:21:51,506 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:21:51,506 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:21:51,506 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:21:51,506 - __main__ - ERROR - ❌ Feature engineering test failed: __enter__
+2025-08-30 21:21:51,507 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 915, in calculate_all_indicators
+    with with_error_context("calculating all enhanced technical indicators"):
+AttributeError: __enter__
+
+2025-08-30 21:21:51,507 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:21:51,507 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:51,507 - __main__ - INFO - === Testing Ensemble Integration ===
+2025-08-30 21:21:51,507 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:21:51,507 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:21:51,507 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:21:51,525 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:21:51,526 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:21:51,526 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:21:51,526 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:21:51,526 - __main__ - ERROR - ❌ Feature engineering test failed: __enter__
+2025-08-30 21:21:51,526 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 915, in calculate_all_indicators
+    with with_error_context("calculating all enhanced technical indicators"):
+AttributeError: __enter__
+
+2025-08-30 21:21:51,526 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:21:51,526 - __main__ - ERROR - Cannot test ensemble without individual models
+2025-08-30 21:21:51,526 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:51,526 - __main__ - INFO - === Testing Calibration Optimizer ===
+2025-08-30 21:21:51,529 - __main__ - INFO - === Testing Ensemble Integration ===
+2025-08-30 21:21:51,530 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:21:51,530 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:21:51,530 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:21:51,549 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:21:51,549 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:21:51,549 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:21:51,549 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:21:51,549 - __main__ - ERROR - ❌ Feature engineering test failed: __enter__
+2025-08-30 21:21:51,549 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 915, in calculate_all_indicators
+    with with_error_context("calculating all enhanced technical indicators"):
+AttributeError: __enter__
+
+2025-08-30 21:21:51,549 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:21:51,549 - __main__ - ERROR - Cannot test ensemble without individual models
+2025-08-30 21:21:51,549 - __main__ - ERROR - Cannot test calibration without ensemble
+2025-08-30 21:21:51,549 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:51,549 - __main__ - INFO - === Testing Hyperparameter Optimizer (Quick Test) ===
+2025-08-30 21:21:51,550 - __main__ - INFO - Creating realistic test data: 5 stocks, 50 days
+2025-08-30 21:21:51,555 - __main__ - INFO - Realistic test data created: 250 records
+2025-08-30 21:21:51,555 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:21:51,555 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:21:51,555 - __main__ - ERROR - ❌ Hyperparameter optimizer test failed: __enter__
+2025-08-30 21:21:51,555 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 424, in test_hyperparameter_optimizer
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 915, in calculate_all_indicators
+    with with_error_context("calculating all enhanced technical indicators"):
+AttributeError: __enter__
+
+2025-08-30 21:21:51,555 - __main__ - INFO - 
+============================================================
+2025-08-30 21:21:51,555 - __main__ - INFO - COMPREHENSIVE TEST RESULTS
+2025-08-30 21:21:51,555 - __main__ - INFO - ============================================================
+2025-08-30 21:21:51,555 - __main__ - INFO - FEATURE ENGINEERING: ❌ FAILED
+2025-08-30 21:21:51,555 - __main__ - INFO - INDIVIDUAL MODELS: ❌ FAILED
+2025-08-30 21:21:51,555 - __main__ - INFO - ENSEMBLE INTEGRATION: ❌ FAILED
+2025-08-30 21:21:51,555 - __main__ - INFO - CALIBRATION OPTIMIZER: ❌ FAILED
+2025-08-30 21:21:51,555 - __main__ - INFO - HYPERPARAMETER OPTIMIZER: ❌ FAILED
+2025-08-30 21:21:51,555 - __main__ - INFO - ============================================================
+2025-08-30 21:21:51,556 - __main__ - ERROR - ❌ SOME TESTS FAILED! Please review and fix the issues before proceeding.
+2025-08-30 21:21:51,556 - __main__ - INFO - ============================================================
+2025-08-30 21:21:51,556 - __main__ - ERROR - 
+❌ VALIDATION FAILED - Issues need to be resolved
+2025-08-30 21:22:20,852 - __main__ - INFO - Starting Step 2 Implementation Validation
+2025-08-30 21:22:20,853 - __main__ - INFO - Starting comprehensive ensemble integration test
+2025-08-30 21:22:20,853 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:20,853 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:22:20,863 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:22:20,895 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:22:20,896 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:22:20,897 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:22:20,897 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:22:20,942 - technical_indicators - INFO - Calculated enhanced moving averages for periods: [5, 10, 20, 60, 120, 240, 5, 10, 20, 60, 120, 240]
+2025-08-30 21:22:20,981 - technical_indicators - INFO - Calculated comprehensive momentum indicators
+2025-08-30 21:22:21,018 - technical_indicators - INFO - Calculated comprehensive trend indicators
+2025-08-30 21:22:21,037 - technical_indicators - INFO - Calculated comprehensive volatility indicators
+2025-08-30 21:22:21,056 - root - ERROR - Error in calculating all enhanced technical indicators: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:21,056 - __main__ - ERROR - ❌ Feature engineering test failed: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:21,058 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 948, in calculate_all_indicators
+    self.logger.info(
+  File "/Users/naoya/.pyenv/versions/3.9.21/lib/python3.9/logging/__init__.py", line 1446, in info
+    self._log(INFO, msg, args, **kwargs)
+TypeError: _log() got an unexpected keyword argument 'total_indicators'
+
+2025-08-30 21:22:21,058 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:21,058 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:22:22,735 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:22:22,736 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:22:22,756 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:22:22,756 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:22:22,756 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:22:22,756 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:22:22,784 - technical_indicators - INFO - Calculated enhanced moving averages for periods: [5, 10, 20, 60, 120, 240, 5, 10, 20, 60, 120, 240]
+2025-08-30 21:22:22,819 - technical_indicators - INFO - Calculated comprehensive momentum indicators
+2025-08-30 21:22:22,855 - technical_indicators - INFO - Calculated comprehensive trend indicators
+2025-08-30 21:22:22,872 - technical_indicators - INFO - Calculated comprehensive volatility indicators
+2025-08-30 21:22:22,884 - root - ERROR - Error in calculating all enhanced technical indicators: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:22,885 - __main__ - ERROR - ❌ Feature engineering test failed: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:22,885 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 948, in calculate_all_indicators
+    self.logger.info(
+  File "/Users/naoya/.pyenv/versions/3.9.21/lib/python3.9/logging/__init__.py", line 1446, in info
+    self._log(INFO, msg, args, **kwargs)
+TypeError: _log() got an unexpected keyword argument 'total_indicators'
+
+2025-08-30 21:22:22,885 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:22:22,885 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:22,885 - __main__ - INFO - === Testing Ensemble Integration ===
+2025-08-30 21:22:22,885 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:22:22,885 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:22:22,885 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:22:22,904 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:22:22,904 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:22:22,904 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:22:22,904 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:22:22,930 - technical_indicators - INFO - Calculated enhanced moving averages for periods: [5, 10, 20, 60, 120, 240, 5, 10, 20, 60, 120, 240]
+2025-08-30 21:22:22,965 - technical_indicators - INFO - Calculated comprehensive momentum indicators
+2025-08-30 21:22:23,005 - technical_indicators - INFO - Calculated comprehensive trend indicators
+2025-08-30 21:22:23,023 - technical_indicators - INFO - Calculated comprehensive volatility indicators
+2025-08-30 21:22:23,038 - root - ERROR - Error in calculating all enhanced technical indicators: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,038 - __main__ - ERROR - ❌ Feature engineering test failed: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,038 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 948, in calculate_all_indicators
+    self.logger.info(
+  File "/Users/naoya/.pyenv/versions/3.9.21/lib/python3.9/logging/__init__.py", line 1446, in info
+    self._log(INFO, msg, args, **kwargs)
+TypeError: _log() got an unexpected keyword argument 'total_indicators'
+
+2025-08-30 21:22:23,038 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:22:23,039 - __main__ - ERROR - Cannot test ensemble without individual models
+2025-08-30 21:22:23,039 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:23,039 - __main__ - INFO - === Testing Calibration Optimizer ===
+2025-08-30 21:22:23,039 - __main__ - INFO - === Testing Ensemble Integration ===
+2025-08-30 21:22:23,039 - __main__ - INFO - === Testing Individual Models ===
+2025-08-30 21:22:23,039 - __main__ - INFO - === Testing Feature Engineering Pipeline ===
+2025-08-30 21:22:23,039 - __main__ - INFO - Creating realistic test data: 10 stocks, 100 days
+2025-08-30 21:22:23,059 - __main__ - INFO - Realistic test data created: 1000 records
+2025-08-30 21:22:23,059 - __main__ - INFO - Test data shape: (1000, 7)
+2025-08-30 21:22:23,059 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:22:23,059 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:22:23,083 - technical_indicators - INFO - Calculated enhanced moving averages for periods: [5, 10, 20, 60, 120, 240, 5, 10, 20, 60, 120, 240]
+2025-08-30 21:22:23,117 - technical_indicators - INFO - Calculated comprehensive momentum indicators
+2025-08-30 21:22:23,153 - technical_indicators - INFO - Calculated comprehensive trend indicators
+2025-08-30 21:22:23,168 - technical_indicators - INFO - Calculated comprehensive volatility indicators
+2025-08-30 21:22:23,181 - root - ERROR - Error in calculating all enhanced technical indicators: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,181 - __main__ - ERROR - ❌ Feature engineering test failed: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,181 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 145, in test_feature_engineering
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 948, in calculate_all_indicators
+    self.logger.info(
+  File "/Users/naoya/.pyenv/versions/3.9.21/lib/python3.9/logging/__init__.py", line 1446, in info
+    self._log(INFO, msg, args, **kwargs)
+TypeError: _log() got an unexpected keyword argument 'total_indicators'
+
+2025-08-30 21:22:23,181 - __main__ - ERROR - Cannot test models without features
+2025-08-30 21:22:23,181 - __main__ - ERROR - Cannot test ensemble without individual models
+2025-08-30 21:22:23,181 - __main__ - ERROR - Cannot test calibration without ensemble
+2025-08-30 21:22:23,181 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:23,182 - __main__ - INFO - === Testing Hyperparameter Optimizer (Quick Test) ===
+2025-08-30 21:22:23,182 - __main__ - INFO - Creating realistic test data: 5 stocks, 50 days
+2025-08-30 21:22:23,187 - __main__ - INFO - Realistic test data created: 250 records
+2025-08-30 21:22:23,188 - features.feature_engineer - INFO - Starting comprehensive feature generation (400+ features)...
+2025-08-30 21:22:23,188 - features.feature_engineer - INFO - Generating enhanced technical indicators...
+2025-08-30 21:22:23,207 - technical_indicators - INFO - Calculated enhanced moving averages for periods: [5, 10, 20, 60, 120, 240, 5, 10, 20, 60, 120, 240]
+2025-08-30 21:22:23,230 - technical_indicators - INFO - Calculated comprehensive momentum indicators
+2025-08-30 21:22:23,255 - technical_indicators - INFO - Calculated comprehensive trend indicators
+2025-08-30 21:22:23,268 - technical_indicators - INFO - Calculated comprehensive volatility indicators
+2025-08-30 21:22:23,279 - root - ERROR - Error in calculating all enhanced technical indicators: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,279 - __main__ - ERROR - ❌ Hyperparameter optimizer test failed: _log() got an unexpected keyword argument 'total_indicators'
+2025-08-30 21:22:23,279 - __main__ - ERROR - Traceback (most recent call last):
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/scripts/test_ensemble_integration.py", line 424, in test_hyperparameter_optimizer
+    enhanced_features = feature_engineer.generate_features(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/feature_engineer.py", line 192, in generate_features
+    result_df = self.technical.calculate_all_indicators(
+  File "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/src/features/technical_indicators.py", line 948, in calculate_all_indicators
+    self.logger.info(
+  File "/Users/naoya/.pyenv/versions/3.9.21/lib/python3.9/logging/__init__.py", line 1446, in info
+    self._log(INFO, msg, args, **kwargs)
+TypeError: _log() got an unexpected keyword argument 'total_indicators'
+
+2025-08-30 21:22:23,279 - __main__ - INFO - 
+============================================================
+2025-08-30 21:22:23,279 - __main__ - INFO - COMPREHENSIVE TEST RESULTS
+2025-08-30 21:22:23,279 - __main__ - INFO - ============================================================
+2025-08-30 21:22:23,279 - __main__ - INFO - FEATURE ENGINEERING: ❌ FAILED
+2025-08-30 21:22:23,279 - __main__ - INFO - INDIVIDUAL MODELS: ❌ FAILED
+2025-08-30 21:22:23,279 - __main__ - INFO - ENSEMBLE INTEGRATION: ❌ FAILED
+2025-08-30 21:22:23,279 - __main__ - INFO - CALIBRATION OPTIMIZER: ❌ FAILED
+2025-08-30 21:22:23,279 - __main__ - INFO - HYPERPARAMETER OPTIMIZER: ❌ FAILED
+2025-08-30 21:22:23,279 - __main__ - INFO - ============================================================
+2025-08-30 21:22:23,279 - __main__ - ERROR - ❌ SOME TESTS FAILED! Please review and fix the issues before proceeding.
+2025-08-30 21:22:23,279 - __main__ - INFO - ============================================================
+2025-08-30 21:22:23,279 - __main__ - ERROR - 
+❌ VALIDATION FAILED - Issues need to be resolved

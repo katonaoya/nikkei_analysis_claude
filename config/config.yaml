@@ -1,0 +1,197 @@
+# AI Stock Analysis System Configuration
+
+# Data Configuration
+data:
+  start_date: "2016-01-01"
+  end_date: "2024-12-31"
+  train_end_date: "2022-12-30"
+  val_end_date: "2023-12-30"
+  test_end_date: "2024-12-31"
+  
+  # Data directories
+  raw_dir: "data/raw"
+  feature_dir: "data/feature"
+  model_dir: "data/model"
+  signals_dir: "signals"
+  logs_dir: "logs"
+  
+  # Data format
+  format: "parquet"  # or "csv"
+  compression: "snappy"
+
+# Feature Engineering
+features:
+  # Moving averages periods
+  ma_periods: [5, 10, 20, 60, 120]
+  
+  # Technical indicators
+  rsi_period: 14
+  bb_period: 20
+  bb_std: 2
+  
+  # Missing value handling
+  fill_method: "ffill"  # forward fill
+  outlier_method: "quantile"  # quantile clipping
+  outlier_lower: 0.01
+  outlier_upper: 0.99
+
+# Labels
+labels:
+  target_return: 0.01  # 1% return threshold
+  lookahead_days: 1    # next business day
+
+# Model Configuration
+models:
+  # Ensemble weights
+  ensemble_weights:
+    lightgbm: 0.45
+    catboost: 0.45
+    logistic: 0.10
+  
+  # Class imbalance handling
+  handle_imbalance: true
+  
+  # Cross-validation
+  n_splits: 6
+  gap_days: 5  # gap between train and validation
+  
+  # Hyperparameter optimization
+  optuna_trials: 200
+  random_state: 42
+  n_jobs: 4
+
+# LightGBM specific parameters
+lightgbm:
+  objective: "binary"
+  metric: "binary_logloss"
+  boosting_type: "gbdt"
+  num_leaves: 31
+  learning_rate: 0.1
+  feature_fraction: 0.9
+  bagging_fraction: 0.8
+  bagging_freq: 5
+  verbose: -1
+
+# CatBoost specific parameters
+catboost:
+  loss_function: "Logloss"
+  iterations: 1000
+  learning_rate: 0.1
+  depth: 6
+  verbose: false
+
+# Logistic Regression specific parameters
+logistic:
+  penalty: "l2"
+  C: 1.0
+  max_iter: 1000
+  solver: "lbfgs"
+
+# Prediction & Selection Rules
+prediction:
+  # Threshold for candidate selection
+  base_threshold: 0.85
+  high_volatility_threshold: 0.90
+  
+  # Top-K selection
+  max_daily_picks: 3
+  
+  # Volatility detection
+  volatility_window: 20
+  volatility_threshold: 0.02  # 2% daily volatility threshold
+
+# Execution Settings
+execution:
+  # Timing
+  daily_execution_time: "16:00"
+  timezone: "Asia/Tokyo"
+  
+  # Retry settings
+  max_retries: 3
+  timeout_seconds: 1800  # 30 minutes
+  
+  # Performance
+  chunk_size: 10000
+  batch_size: 1000
+  parallel_workers: 4
+
+# Monitoring & Alerts
+monitoring:
+  enable_monitoring: true
+  enable_alerts: true
+  
+  # Performance thresholds
+  min_precision: 0.75
+  min_daily_picks: 0
+  max_daily_picks: 3
+  
+  # Alert conditions
+  alert_on_low_precision: true
+  alert_on_no_picks_days: 7  # consecutive days
+  alert_on_errors: true
+
+# API Configuration
+api:
+  jquants:
+    base_url: "https://api.jquants.com"
+    rate_limit: 100  # requests per minute
+    timeout: 30
+  
+  runpod:
+    base_url: "https://api.runpod.ai"
+    timeout: 60
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  rotation: "1 day"
+  retention: "30 days"
+  
+  # Log file settings
+  log_to_file: true
+  log_to_console: true
+  log_requests: true
+  log_predictions: true
+
+# Security
+security:
+  # Environment variables to load
+  required_env_vars:
+    - "JQUANTS_MAIL_ADDRESS"
+    - "JQUANTS_PASSWORD"
+    - "RUNPOD_API_KEY"
+    - "RUNPOD_ENDPOINT_ID"
+  
+  # API rate limiting
+  api_rate_limit: 100
+  api_rate_limit_period: 60  # seconds
+
+# Testing & Validation
+testing:
+  test_mode: false
+  use_sample_data: false
+  sample_data_size: 1000
+  
+  # Backtesting settings
+  transaction_cost: 0.0005  # 0.05% one-way
+  slippage: 0.001  # 0.1% slippage
+  
+  # Validation settings
+  validate_data: true
+  validate_features: true
+  validate_models: true
+
+# Development Settings
+development:
+  debug: false
+  jupyter_port: 8888
+  tensorboard_port: 6006
+  
+  # Code quality
+  auto_format: true
+  run_tests: true
+  
+  # Caching
+  cache_enabled: true
+  cache_ttl: 3600  # 1 hour

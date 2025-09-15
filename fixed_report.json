@@ -1,0 +1,112 @@
+{
+  "buy_recommendations": {
+    "report_type": "購入推奨レポート",
+    "generated_at": "2025-09-03T23:59:06.555988",
+    "market_date": "2025-09-03",
+    "total_recommendations": 5,
+    "available_capital": 1000000,
+    "max_positions": 5,
+    "parameters": {
+      "hold_days": 9,
+      "profit_target": 0.14,
+      "stop_loss": 0.06,
+      "last_updated": "2025-08-31",
+      "annual_return": 1.2321
+    },
+    "recommendations": [
+      {
+        "code": "82670",
+        "company_name": "ギグワークス",
+        "current_price": 1773.5,
+        "confidence": 0.5162105701826684,
+        "predicted_direction": "UP",
+        "recommended_shares": 107,
+        "investment_amount": 189764.5,
+        "profit_target_price": 2022,
+        "stop_loss_price": 1667,
+        "expected_hold_days": 9
+      },
+      {
+        "code": "97660",
+        "company_name": "モビルス",
+        "current_price": 22040.0,
+        "confidence": 0.5131185884362444,
+        "predicted_direction": "UP",
+        "recommended_shares": 8,
+        "investment_amount": 176320.0,
+        "profit_target_price": 25126,
+        "stop_loss_price": 20718,
+        "expected_hold_days": 9
+      },
+      {
+        "code": "99830",
+        "company_name": "オハラ",
+        "current_price": 46440.0,
+        "confidence": 0.5128649562506173,
+        "predicted_direction": "UP",
+        "recommended_shares": 4,
+        "investment_amount": 185760.0,
+        "profit_target_price": 52942,
+        "stop_loss_price": 43654,
+        "expected_hold_days": 9
+      },
+      {
+        "code": "78320",
+        "company_name": "ビットワングループ",
+        "current_price": 5040.0,
+        "confidence": 0.5117702052084108,
+        "predicted_direction": "UP",
+        "recommended_shares": 37,
+        "investment_amount": 186480.0,
+        "profit_target_price": 5746,
+        "stop_loss_price": 4738,
+        "expected_hold_days": 9
+      },
+      {
+        "code": "63670",
+        "company_name": "ANYCOLOR",
+        "current_price": 18200.0,
+        "confidence": 0.5117028250981701,
+        "predicted_direction": "UP",
+        "recommended_shares": 10,
+        "investment_amount": 182000.0,
+        "profit_target_price": 20748,
+        "stop_loss_price": 17108,
+        "expected_hold_days": 9
+      }
+    ],
+    "summary": {
+      "total_investment": 920324.5,
+      "average_confidence": 0.5131334290352221,
+      "cash_remaining": 79675.5
+    }
+  },
+  "portfolio_management": {
+    "report_type": "保有銘柄管理レポート",
+    "generated_at": "2025-09-03T23:59:06.556113",
+    "portfolio_date": "2025-09-03",
+    "total_positions": 0,
+    "portfolio_summary": {
+      "total_portfolio_value": 0,
+      "cash_balance": 1000000,
+      "total_value": 1000000,
+      "total_unrealized_pl": 0,
+      "total_unrealized_pl_pct": 0.0,
+      "portfolio_weight": 0.0
+    },
+    "positions": [],
+    "sell_recommendations": [],
+    "parameters": {
+      "hold_days": 9,
+      "profit_target": 0.14,
+      "stop_loss": 0.06,
+      "last_updated": "2025-08-31",
+      "annual_return": 1.2321
+    }
+  },
+  "performance_summary": {
+    "report_type": "パフォーマンスサマリー",
+    "generated_at": "2025-09-03T23:59:06.556155",
+    "message": "取引履歴がありません"
+  }
+}

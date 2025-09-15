@@ -1,0 +1,66 @@
+# Core Data Science Libraries
+pandas==2.0.3
+numpy==1.24.3
+scikit-learn==1.3.0
+scipy==1.11.1
+
+# Machine Learning Libraries
+lightgbm==4.0.0
+catboost==1.2.2
+optuna==3.3.0
+shap==0.42.1
+
+# Data Processing
+pyarrow==12.0.1
+fastparquet==0.8.3
+
+# Technical Analysis
+ta-lib==0.4.26
+TA-Lib==0.4.26
+
+# API Clients
+requests==2.31.0
+urllib3==2.0.4
+httpx==0.24.1
+yfinance==0.2.18
+
+# Time Series
+
+# Configuration
+pyyaml==6.0.1
+python-dotenv==1.0.0
+
+# Logging & Monitoring
+loguru==0.7.0
+
+# Database
+psycopg2-binary==2.9.7
+redis==4.6.0
+
+# Cloud Services
+boto3==1.28.25
+
+# Jupyter & Visualization
+jupyter==1.0.0
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.15.0
+
+# Testing
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Development Tools
+black==23.7.0
+flake8==6.0.0
+isort==5.12.0
+
+# Async
+asyncio==3.4.3
+aiohttp==3.8.5
+
+# Progress Bars
+tqdm==4.65.0
+
+# Math & Stats
+statsmodels==0.14.0
