@@ -68,10 +68,14 @@ class DailyStockRecommendation:
     def _load_model_components(self):
         """学習済みモデル、スケーラー、特徴量名を読み込み"""
         try:
-            # モデルファイルを探す（複数の命名パターンに対応）
-            model_files = list(self.model_dir.glob("*final_model*.pkl"))
-            model_files.extend(list(self.model_dir.glob("*model*.joblib")))
-            scaler_files = list(self.model_dir.glob("*scaler*.pkl"))
+            # Enhanced V3モデルを優先的に探す
+            model_files = list(self.model_dir.glob("enhanced_v3/*enhanced_model_v3*.joblib"))
+            if not model_files:
+                model_files = list(self.model_dir.glob("*final_model*.pkl"))
+                model_files.extend(list(self.model_dir.glob("*model*.joblib")))
+            
+            scaler_files = list(self.model_dir.glob("enhanced_v3/*scaler*.pkl"))
+            scaler_files.extend(list(self.model_dir.glob("*scaler*.pkl")))
             scaler_files.extend(list(self.model_dir.glob("*scaler*.joblib")))
             
             if not model_files:
@@ -268,8 +272,8 @@ class DailyStockRecommendation:
                 prediction = self.model.predict(features_scaled)[0]
                 prediction_proba = self.model.predict_proba(features_scaled)[0][1]  # 正例確率
                 
-                # 推奨条件（確率閾値）
-                if prediction_proba >= 0.40:  # 40%以上の信頼度
+                # 推奨条件（確率閾値）- 78.6%精度モデルに合わせて調整
+                if prediction_proba >= 0.60:  # 60%以上の信頼度
                     recommendations.append({
                         'code': code,
                         'company_name': company_name,
@@ -408,7 +412,9 @@ class DailyStockRecommendation:
 
 def main():
     parser = argparse.ArgumentParser(description='日付指定による翌日推奨銘柄レポート作成')
-    parser.add_argument('--date', required=True, help='基準日付 (YYYY-MM-DD)')
+    # デフォルトを今日の日付にする
+    today = datetime.now().strftime('%Y-%m-%d')
+    parser.add_argument('--date', default=today, help=f'基準日付 (YYYY-MM-DD, デフォルト: {today})')
     parser.add_argument('--top', type=int, default=5, help='推奨銘柄数 (デフォルト: 5)')
     
     args = parser.parse_args()

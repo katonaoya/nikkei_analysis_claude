@@ -33,11 +33,11 @@ class EnhancedPrecisionSystemV3:
     
     def __init__(self, stock_file: str = None, external_file: str = None):
         """初期化"""
-        # デフォルトファイルパス
+        # デフォルトファイルパス（動的に最新ファイルを取得）
         if stock_file is None:
-            stock_file = "data/processed/nikkei225_complete_225stocks_20250909_230649.parquet"
+            stock_file = self._find_latest_stock_file()
         if external_file is None:
-            external_file = "data/external_extended/external_integrated_10years_20250909_231815.parquet"
+            external_file = self._find_latest_external_file()
             
         self.stock_file = stock_file
         self.external_file = external_file
@@ -49,6 +49,74 @@ class EnhancedPrecisionSystemV3:
         logger.info("🎯 Enhanced Precision System V3 初期化完了")
         logger.info(f"株価データ: {self.stock_file}")
         logger.info(f"外部データ: {self.external_file}")
+    
+    def _find_latest_stock_file(self) -> str:
+        """最新の株価データファイルを取得"""
+        import glob
+        
+        # 複数のパターンを試す
+        patterns = [
+            "data/processed/nikkei225_complete_*.parquet",
+            "data/real_jquants_data/nikkei225_real_data_*.pkl",
+            "data/processed/nikkei225_*.parquet"
+        ]
+        
+        latest_file = None
+        latest_time = 0
+        
+        for pattern in patterns:
+            files = glob.glob(pattern)
+            for file in files:
+                try:
+                    file_time = os.path.getmtime(file)
+                    if file_time > latest_time:
+                        latest_time = file_time
+                        latest_file = file
+                except:
+                    continue
+        
+        if latest_file is None:
+            # フォールバック: 固定ファイル名
+            latest_file = "data/processed/nikkei225_complete_225stocks_20250909_230649.parquet"
+            logger.warning(f"最新株価ファイルが見つからないため、固定ファイルを使用: {latest_file}")
+        else:
+            logger.info(f"最新株価ファイル取得: {latest_file}")
+        
+        return latest_file
+    
+    def _find_latest_external_file(self) -> str:
+        """最新の外部データファイルを取得"""
+        import glob
+        
+        # 複数のパターンを試す
+        patterns = [
+            "data/external_extended/external_integrated_*.parquet",
+            "data/processed/enhanced_integrated_data.parquet",
+            "data/processed/external_*.parquet"
+        ]
+        
+        latest_file = None
+        latest_time = 0
+        
+        for pattern in patterns:
+            files = glob.glob(pattern)
+            for file in files:
+                try:
+                    file_time = os.path.getmtime(file)
+                    if file_time > latest_time:
+                        latest_time = file_time
+                        latest_file = file
+                except:
+                    continue
+        
+        if latest_file is None:
+            # フォールバック: 固定ファイル名
+            latest_file = "data/external_extended/external_integrated_10years_20250909_231815.parquet"
+            logger.warning(f"最新外部データファイルが見つからないため、固定ファイルを使用: {latest_file}")
+        else:
+            logger.info(f"最新外部データファイル取得: {latest_file}")
+        
+        return latest_file
     
     def load_and_integrate_data(self) -> pd.DataFrame:
         """データ読み込みと統合"""
@@ -73,8 +141,8 @@ class EnhancedPrecisionSystemV3:
         # 日付型統一
         stock_df['Date'] = pd.to_datetime(stock_df['Date']).dt.tz_localize(None)
         
-        # 外部データとの統合
-        if external_df is not None:
+        # 外部データ統合を一時的に無効化（78.5%精度時の状態に復元）
+        if external_df is not None and len(external_df) < 10000:  # 小さいファイルのみ統合
             try:
                 external_df['Date'] = pd.to_datetime(external_df['Date']).dt.tz_localize(None)
                 
@@ -89,73 +157,73 @@ class EnhancedPrecisionSystemV3:
                     stock_df = pd.merge(stock_df, external_selected, on='Date', how='left')
                     logger.info(f"外部データ統合完了: {len(important_external_cols)-1}指標")
                 else:
-                    logger.warning("重要な外部指標が見つかりませんでした")
+                    logger.info("外部データが大きすぎるためスキップ（株価データのみ使用）")
                     
             except Exception as e:
                 logger.warning(f"外部データ統合エラー: {e}")
+        else:
+            logger.info("外部データ統合をスキップ（株価データのみ使用 - 78.5%精度モード）")
         
         logger.info(f"統合後データ: {len(stock_df):,}件, {len(stock_df.columns)}カラム")
         return stock_df
     
     def create_enhanced_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """拡張特徴量作成（シンプル版）"""
+        """拡張特徴量作成（メモリ最適化版）"""
         logger.info("🔥 拡張特徴量エンジニアリング開始...")
         
-        enhanced_df = df.copy()
+        # 全期間のデータを使用（78.5%精度時の状態に復元）
+        df_recent = df.copy()
         
-        # 銘柄別に特徴量作成
-        for code in enhanced_df['Code'].unique():
+        logger.info(f"全期間データ使用: {len(df_recent):,}件（約10年間）")
+        
+        # 処理用のDataFrameを準備（メモリ効率を重視）
+        enhanced_df = df_recent.copy()
+        
+        # 全銘柄を一括処理（78.5%精度時の状態に復元）
+        unique_codes = enhanced_df['Code'].unique()
+        logger.info(f"全銘柄一括処理: {len(unique_codes)}銘柄")
+        
+        for code in unique_codes:
             mask = enhanced_df['Code'] == code
             code_data = enhanced_df[mask].copy().sort_values('Date')
             
-            # 基本特徴量
-            code_data['Returns'] = code_data['Close'].pct_change()
-            code_data['Log_Returns'] = np.log(code_data['Close'] / code_data['Close'].shift(1))
-            code_data['High_Low_Ratio'] = code_data['High'] / code_data['Low']
+            if len(code_data) < 50:  # データが少ない銘柄はスキップ
+                continue
             
-            # 移動平均（複数期間）
-            for window in [5, 10, 20, 50]:
+            # 基本特徴量（必要最小限）
+            code_data['Returns'] = code_data['Close'].pct_change()
+            code_data['High_Low_Ratio'] = code_data['High'] / code_data['Low']
+                
+            # 移動平均（重要な期間のみ）
+            for window in [5, 20]:
                 code_data[f'MA_{window}'] = code_data['Close'].rolling(window).mean()
                 code_data[f'MA_{window}_ratio'] = code_data['Close'] / code_data[f'MA_{window}']
-            
-            # ボラティリティ
-            for window in [5, 20]:
-                code_data[f'Volatility_{window}'] = code_data['Returns'].rolling(window).std()
-            
-            # RSI
-            for window in [14, 30]:
-                delta = code_data['Close'].diff()
-                gain = (delta.where(delta > 0, 0)).rolling(window).mean()
-                loss = (-delta.where(delta < 0, 0)).rolling(window).mean()
-                rs = gain / loss
-                code_data[f'RSI_{window}'] = 100 - (100 / (1 + rs))
-            
-            # ボリンジャーバンド
-            rolling_mean = code_data['Close'].rolling(20).mean()
-            rolling_std = code_data['Close'].rolling(20).std()
-            code_data['BB_upper'] = rolling_mean + (rolling_std * 2)
-            code_data['BB_lower'] = rolling_mean - (rolling_std * 2)
-            code_data['BB_ratio'] = (code_data['Close'] - code_data['BB_lower']) / (code_data['BB_upper'] - code_data['BB_lower'])
-            
-            # MACD
+                
+            # ボラティリティ（1つのwindowのみ）
+            code_data['Volatility_20'] = code_data['Returns'].rolling(20).std()
+                
+            # RSI（1つのwindowのみ）
+            window = 14
+            delta = code_data['Close'].diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window).mean()
+            rs = gain / loss
+            code_data['RSI_14'] = 100 - (100 / (1 + rs))
+                
+            # MACD（シンプル版）
             exp1 = code_data['Close'].ewm(span=12).mean()
             exp2 = code_data['Close'].ewm(span=26).mean()
             code_data['MACD'] = exp1 - exp2
-            code_data['MACD_signal'] = code_data['MACD'].ewm(span=9).mean()
-            code_data['MACD_histogram'] = code_data['MACD'] - code_data['MACD_signal']
-            
+                
             # ボリューム特徴量
             code_data['Volume_MA_20'] = code_data['Volume'].rolling(20).mean()
             code_data['Volume_ratio'] = code_data['Volume'] / code_data['Volume_MA_20']
-            
-            # 外部データとの相関特徴量（外部データがある場合）
+                
+            # 外部データ特徴量は最小限に
             for col in code_data.columns:
-                if any(key in col.lower() for key in ['usdjpy', 'vix', 'nikkei225', 'sp500']):
-                    if code_data[col].notna().sum() > 100:  # 十分なデータがある場合のみ
-                        # 外部指標との比率
+                if any(key in col.lower() for key in ['usdjpy', 'vix']):
+                    if code_data[col].notna().sum() > 50:
                         code_data[f'{col}_change'] = code_data[col].pct_change()
-                        # 5日移動平均
-                        code_data[f'{col}_MA5'] = code_data[col].rolling(5).mean()
             
             enhanced_df.loc[mask] = code_data
         
@@ -179,23 +247,40 @@ class EnhancedPrecisionSystemV3:
         
         return enhanced_df
     
-    def walk_forward_optimization(self, df: pd.DataFrame, initial_train_size: int = 252*3) -> list:
-        """ウォークフォワード最適化"""
+    def walk_forward_optimization(self, df: pd.DataFrame, initial_train_size: int = 252*2) -> list:
+        """ウォークフォワード最適化（メモリ最適化版）"""
         logger.info("📈 ウォークフォワード最適化開始...")
         
+        # メモリ使用量削減: データサンプリング
+        if len(df) > 200000:  # 20万件以上の場合はサンプリング
+            df_sampled = df.sample(n=200000, random_state=42).copy()
+            logger.info(f"データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
+        else:
+            df_sampled = df.copy()
+        
         # 日付でソート
-        df_sorted = df.sort_values(['Date', 'Code']).copy()
+        df_sorted = df_sampled.sort_values(['Date', 'Code']).copy()
         unique_dates = sorted(df_sorted['Date'].unique())
         
         results = []
-        step_size = 21  # 月次リバランス
+        step_size = 42  # 2ヶ月リバランス（計算量削減）
         
-        # 特徴量カラム選択
+        # 特徴量カラム選択（重要な特徴量のみ）
         feature_cols = [col for col in df_sorted.columns 
                        if col not in ['Date', 'Code', 'Target'] and 
-                       df_sorted[col].dtype in ['int64', 'float64']]
+                       str(df_sorted[col].dtype) in ['int64', 'float64', 'int32', 'float32']]
+        
+        # 特徴量数制限
+        if len(feature_cols) > 30:
+            # 欠損値が少ない特徴量を優先選択
+            non_null_counts = df_sorted[feature_cols].count()
+            top_features = non_null_counts.nlargest(30).index.tolist()
+            feature_cols = top_features
         
         logger.info(f"使用特徴量数: {len(feature_cols)}")
+        
+        # 初期サイズを小さく設定
+        initial_train_size = min(initial_train_size, len(unique_dates) // 3)
         
         for i in range(initial_train_size, len(unique_dates) - step_size, step_size):
             try:
@@ -224,8 +309,8 @@ class EnhancedPrecisionSystemV3:
                 X_train = X_train.fillna(method='ffill').fillna(0)
                 X_test = X_test.fillna(method='ffill').fillna(0)
                 
-                # 特徴量選択
-                selector = SelectKBest(score_func=f_classif, k=min(50, len(feature_cols)))
+                # 特徴量選択（78.5%精度時に復元）
+                selector = SelectKBest(score_func=f_classif, k=min(30, len(feature_cols)))
                 X_train_selected = selector.fit_transform(X_train, y_train)
                 X_test_selected = selector.transform(X_test)
                 
@@ -234,12 +319,12 @@ class EnhancedPrecisionSystemV3:
                 X_train_scaled = scaler.fit_transform(X_train_selected)
                 X_test_scaled = scaler.transform(X_test_selected)
                 
-                # モデル学習
+                # モデル学習（パラメータ軽量化）
                 model = lgb.LGBMClassifier(
                     objective='binary',
-                    n_estimators=200,
-                    max_depth=8,
-                    learning_rate=0.05,
+                    n_estimators=300,  # 復元
+                    max_depth=8,       # 復元
+                    learning_rate=0.03, # 復元
                     subsample=0.8,
                     colsample_bytree=0.8,
                     reg_alpha=0.1,
@@ -281,19 +366,31 @@ class EnhancedPrecisionSystemV3:
         return results
     
     def train_final_model(self, df: pd.DataFrame) -> dict:
-        """最終モデル学習"""
+        """最終モデル学習（メモリ最適化版）"""
         logger.info("🤖 最終モデル学習開始...")
         
-        # 特徴量準備
-        feature_cols = [col for col in df.columns 
-                       if col not in ['Date', 'Code', 'Target'] and 
-                       df.dtype in ['int64', 'float64']]
+        # メモリ使用量削減
+        if len(df) > 100000:
+            df_sampled = df.sample(n=100000, random_state=42).copy()
+            logger.info(f"最終学習データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
+        else:
+            df_sampled = df.copy()
         
-        X = df[feature_cols].fillna(method='ffill').fillna(0)
-        y = df['Target']
+        # 特徴量準備
+        feature_cols = [col for col in df_sampled.columns 
+                       if col not in ['Date', 'Code', 'Target'] and 
+                       str(df_sampled[col].dtype) in ['int64', 'float64', 'int32', 'float32']]
+        
+        # 特徴量数制限
+        if len(feature_cols) > 25:
+            non_null_counts = df_sampled[feature_cols].count()
+            feature_cols = non_null_counts.nlargest(25).index.tolist()
+        
+        X = df_sampled[feature_cols].fillna(method='ffill').fillna(0)
+        y = df_sampled['Target']
         
         # 時系列分割（最後20%をテスト用）
-        df_sorted = df.sort_values('Date')
+        df_sorted = df_sampled.sort_values('Date')
         split_idx = int(len(df_sorted) * 0.8)
         
         X_train = X[:split_idx]
@@ -301,8 +398,8 @@ class EnhancedPrecisionSystemV3:
         y_train = y[:split_idx]
         y_test = y[split_idx:]
         
-        # 特徴量選択
-        selector = SelectKBest(score_func=f_classif, k=min(50, len(feature_cols)))
+        # 特徴量選択（78.5%精度時に復元）
+        selector = SelectKBest(score_func=f_classif, k=min(30, len(feature_cols)))
         X_train_selected = selector.fit_transform(X_train, y_train)
         X_test_selected = selector.transform(X_test)
         
@@ -311,12 +408,12 @@ class EnhancedPrecisionSystemV3:
         X_train_scaled = scaler.fit_transform(X_train_selected)
         X_test_scaled = scaler.transform(X_test_selected)
         
-        # モデル学習
+        # モデル学習（78.5%精度時のパラメータに復元）
         model = lgb.LGBMClassifier(
             objective='binary',
-            n_estimators=300,
-            max_depth=8,
-            learning_rate=0.03,
+            n_estimators=300,  # 復元
+            max_depth=8,       # 復元
+            learning_rate=0.03,  # 復元
             subsample=0.8,
             colsample_bytree=0.8,
             reg_alpha=0.1,

@@ -48,18 +48,78 @@ class EnhancedV3ProfitLossOptimizer:
         logger.info(f"パラメータ範囲: 利確{len(self.profit_targets)}種, 損切{len(self.stop_losses)}種, 保有{len(self.holding_periods)}種")
         logger.info(f"予想検証数: {len(self.profit_targets) * len(self.stop_losses) * len(self.holding_periods):,}パターン")
     
+    def _find_latest_stock_file(self) -> str:
+        """最新の株価データファイルを取得"""
+        import glob
+        
+        patterns = [
+            "data/processed/nikkei225_complete_*.parquet",
+            "data/real_jquants_data/nikkei225_real_data_*.pkl",
+            "data/processed/nikkei225_*.parquet"
+        ]
+        
+        latest_file = None
+        latest_time = 0
+        
+        for pattern in patterns:
+            files = glob.glob(pattern)
+            for file in files:
+                try:
+                    file_time = os.path.getmtime(file)
+                    if file_time > latest_time:
+                        latest_time = file_time
+                        latest_file = file
+                except:
+                    continue
+        
+        if latest_file is None:
+            latest_file = "data/processed/nikkei225_complete_225stocks_20250909_230649.parquet"
+            logger.warning(f"最新株価ファイルが見つからないため、固定ファイルを使用: {latest_file}")
+        
+        return latest_file
+    
+    def _find_latest_external_file(self) -> str:
+        """最新の外部データファイルを取得"""
+        import glob
+        
+        patterns = [
+            "data/external_extended/external_integrated_*.parquet",
+            "data/processed/enhanced_integrated_data.parquet",
+            "data/processed/external_*.parquet"
+        ]
+        
+        latest_file = None
+        latest_time = 0
+        
+        for pattern in patterns:
+            files = glob.glob(pattern)
+            for file in files:
+                try:
+                    file_time = os.path.getmtime(file)
+                    if file_time > latest_time:
+                        latest_time = file_time
+                        latest_file = file
+                except:
+                    continue
+        
+        if latest_file is None:
+            latest_file = "data/external_extended/external_integrated_10years_20250909_231815.parquet"
+            logger.warning(f"最新外部データファイルが見つからないため、固定ファイルを使用: {latest_file}")
+        
+        return latest_file
+    
     def load_historical_data(self):
         """Enhanced V3対応の履歴データ読み込み"""
         logger.info("📊 Enhanced V3用履歴データ読み込み開始...")
         
         # 実際のデータファイルパス（Enhanced V3システム用）
         try:
-            # 日経225完全データ使用
-            data_file = "data/processed/nikkei225_complete_225stocks_20250909_230649.parquet"
+            # 動的に最新ファイルを取得
+            data_file = self._find_latest_stock_file()
             df = pd.read_parquet(data_file)
             
             # 外部指標データも統合（Enhanced V3の特徴）
-            external_file = "data/external_extended/external_integrated_10years_20250909_231815.parquet"
+            external_file = self._find_latest_external_file()
             external_df = pd.read_parquet(external_file)
             
             # データ統合
@@ -92,9 +152,10 @@ class EnhancedV3ProfitLossOptimizer:
         """現実的なテストデータ生成（データファイルが見つからない場合）"""
         logger.info("📊 テスト用リアリスティックデータ生成...")
         
-        # 2020年〜2025年、225銘柄の日次データ
+        # 現在日付から動的に期間設定
+        current_date = datetime.now()
         start_date = datetime(2020, 1, 1)
-        end_date = datetime(2025, 9, 11)
+        end_date = current_date
         dates = pd.date_range(start_date, end_date, freq='D')
         business_days = [d for d in dates if d.weekday() < 5]  # 平日のみ
         
