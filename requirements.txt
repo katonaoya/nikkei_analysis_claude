@@ -20,7 +20,7 @@ TA-Lib==0.4.26
 
 # API Clients
 requests==2.31.0
-urllib3==2.0.4
+urllib3==1.26.18
 httpx==0.24.1
 yfinance==0.2.18
 

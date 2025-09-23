@@ -38,7 +38,7 @@ class EnhancedV3ProfitLossOptimizer:
         # 検証パラメータ範囲（より細かく設定）
         self.profit_targets = np.arange(0.01, 0.20, 0.005)  # 1%-20% (0.5%刻み)
         self.stop_losses = np.arange(0.005, 0.15, 0.005)    # 0.5%-15% (0.5%刻み)
-        self.holding_periods = range(1, 21)                  # 1-20日
+        self.holding_periods = list(range(1, 21))            # 最大保有日数は1〜20日に設定
         
         # データ保存ディレクトリ
         self.results_dir = Path("profit_loss_optimization_results")
@@ -537,40 +537,78 @@ class EnhancedV3ProfitLossOptimizer:
         logger.info("🚀 Enhanced V3 包括的利確/損切り最適化開始...")
         
         # パラメータ組み合わせ生成（利確 > 損切りの制約付き）
-        param_combinations = []
-        for profit_target in self.profit_targets:
-            for stop_loss in self.stop_losses:
-                for holding_days in self.holding_periods:
-                    if profit_target > stop_loss:  # 制約条件
-                        param_combinations.append((df, profit_target, stop_loss, holding_days))
-        
-        logger.info(f"検証パラメータ組み合わせ: {len(param_combinations):,}パターン")
+        combos_by_holding = {}
+        total_patterns = 0
+        for holding_days in self.holding_periods:
+            combos = []
+            for profit_target in self.profit_targets:
+                for stop_loss in self.stop_losses:
+                    if profit_target > stop_loss:
+                        combos.append((df, profit_target, stop_loss, holding_days))
+            combos_by_holding[holding_days] = combos
+            total_patterns += len(combos)
+
+        logger.info(f"検証パラメータ組み合わせ: {total_patterns:,}パターン")
         logger.info("⏰ 注意: 全パターン検証のため時間がかかります（推定1-3時間）")
-        
+
         # 並列実行でパフォーマンス向上
         cpu_count = min(mp.cpu_count(), 8)  # 最大8プロセス
         logger.info(f"並列実行: {cpu_count}プロセス使用")
-        
+
         results = []
-        with ProcessPoolExecutor(max_workers=cpu_count) as executor:
-            # バッチ処理で進捗確認
-            batch_size = 100
-            for i in range(0, len(param_combinations), batch_size):
-                batch = param_combinations[i:i+batch_size]
-                batch_results = list(executor.map(self.run_single_optimization, batch))
-                
-                # None結果を除外
-                batch_results = [r for r in batch_results if r is not None]
-                results.extend(batch_results)
-                
-                # 進捗報告
-                progress = min((i + batch_size) / len(param_combinations) * 100, 100)
-                if len(results) > 0:
-                    best_return = max(r['total_return_pct'] for r in results)
-                    logger.info(f"進捗: {progress:.1f}% ({len(results)}結果, 最高リターン: {best_return:.2%})")
-        
+        start_time = datetime.now()
+
+        processed_cases = 0
+
+        batch_size = 100
+        for holding_days, combinations in combos_by_holding.items():
+            if not combinations:
+                logger.info(f"▶ 保有{holding_days}日: 対象パターンなし（利確 <= 損切）")
+                continue
+
+            logger.info(f"▶ 保有{holding_days}日: {len(combinations):,}パターン検証開始")
+
+            with ProcessPoolExecutor(max_workers=cpu_count) as executor:
+                for i in range(0, len(combinations), batch_size):
+                    batch = combinations[i:i+batch_size]
+                    batch_results = list(executor.map(self.run_single_optimization, batch))
+
+                    # None結果を除外
+                    batch_results = [r for r in batch_results if r is not None]
+                    results.extend(batch_results)
+
+                    processed_cases += len(batch)
+                    progress_pct = processed_cases / total_patterns * 100 if total_patterns else 0
+                    elapsed = datetime.now() - start_time
+
+                    if results:
+                        best_return = max(r['total_return_pct'] for r in results)
+                        logger.info(
+                            "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: %d件 | 最高リターン: %.2f%%",
+                            processed_cases,
+                            total_patterns,
+                            progress_pct,
+                            holding_days,
+                            min(i + len(batch), len(combinations)),
+                            len(combinations),
+                            str(elapsed).split('.')[0],
+                            len(results),
+                            best_return * 100
+                        )
+                    else:
+                        logger.info(
+                            "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: 0件",
+                            processed_cases,
+                            total_patterns,
+                            progress_pct,
+                            holding_days,
+                            min(i + len(batch), len(combinations)),
+                            len(combinations),
+                            str(elapsed).split('.')[0]
+                        )
+
         logger.info(f"🎉 最適化完了: {len(results):,}パターン検証完了")
-        
+
         return pd.DataFrame(results)
     
     def analyze_and_visualize_results(self, results_df):
