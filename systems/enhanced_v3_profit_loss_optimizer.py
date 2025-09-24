@@ -561,6 +561,8 @@ class EnhancedV3ProfitLossOptimizer:
         processed_cases = 0
 
         batch_size = 100
+        progress_interval = timedelta(seconds=30)
+        last_log_time = start_time - progress_interval
         for holding_days, combinations in combos_by_holding.items():
             if not combinations:
                 logger.info(f"▶ 保有{holding_days}日: 対象パターンなし（利確 <= 損切）")
@@ -578,34 +580,44 @@ class EnhancedV3ProfitLossOptimizer:
                     results.extend(batch_results)
 
                     processed_cases += len(batch)
-                    progress_pct = processed_cases / total_patterns * 100 if total_patterns else 0
-                    elapsed = datetime.now() - start_time
 
-                    if results:
-                        best_return = max(r['total_return_pct'] for r in results)
-                        logger.info(
-                            "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: %d件 | 最高リターン: %.2f%%",
-                            processed_cases,
-                            total_patterns,
-                            progress_pct,
-                            holding_days,
-                            min(i + len(batch), len(combinations)),
-                            len(combinations),
-                            str(elapsed).split('.')[0],
-                            len(results),
-                            best_return * 100
-                        )
-                    else:
-                        logger.info(
-                            "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: 0件",
-                            processed_cases,
-                            total_patterns,
-                            progress_pct,
-                            holding_days,
-                            min(i + len(batch), len(combinations)),
-                            len(combinations),
-                            str(elapsed).split('.')[0]
-                        )
+                    now = datetime.now()
+                    should_log = (
+                        now - last_log_time >= progress_interval
+                        or processed_cases == total_patterns
+                        or i + len(batch) >= len(combinations)
+                    )
+
+                    if should_log:
+                        last_log_time = now
+                        progress_pct = processed_cases / total_patterns * 100 if total_patterns else 0
+                        elapsed = now - start_time
+
+                        if results:
+                            best_return = max(r['total_return_pct'] for r in results)
+                            logger.info(
+                                "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: %d件 | 最高リターン: %.2f%%",
+                                processed_cases,
+                                total_patterns,
+                                progress_pct,
+                                holding_days,
+                                min(i + len(batch), len(combinations)),
+                                len(combinations),
+                                str(elapsed).split('.')[0],
+                                len(results),
+                                best_return * 100
+                            )
+                        else:
+                            logger.info(
+                                "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: 0件",
+                                processed_cases,
+                                total_patterns,
+                                progress_pct,
+                                holding_days,
+                                min(i + len(batch), len(combinations)),
+                                len(combinations),
+                                str(elapsed).split('.')[0]
+                            )
 
         logger.info(f"🎉 最適化完了: {len(results):,}パターン検証完了")
 

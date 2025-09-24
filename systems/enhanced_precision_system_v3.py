@@ -251,12 +251,9 @@ class EnhancedPrecisionSystemV3:
         """ウォークフォワード最適化（メモリ最適化版）"""
         logger.info("📈 ウォークフォワード最適化開始...")
         
-        # メモリ使用量削減: データサンプリング
-        if len(df) > 200000:  # 20万件以上の場合はサンプリング
-            df_sampled = df.sample(n=200000, random_state=42).copy()
-            logger.info(f"データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
-        else:
-            df_sampled = df.copy()
+        # 全量データで検証（再現性と陽性サンプルを最大限活用）
+        df_sampled = df.copy()
+        logger.info(f"ウォークフォワード入力データ: {len(df_sampled):,}件（全量使用）")
         
         # 日付でソート
         df_sorted = df_sampled.sort_values(['Date', 'Code']).copy()
@@ -369,12 +366,9 @@ class EnhancedPrecisionSystemV3:
         """最終モデル学習（メモリ最適化版）"""
         logger.info("🤖 最終モデル学習開始...")
         
-        # メモリ使用量削減
-        if len(df) > 100000:
-            df_sampled = df.sample(n=100000, random_state=42).copy()
-            logger.info(f"最終学習データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
-        else:
-            df_sampled = df.copy()
+        # 全量データを使用（サンプリングを廃止）
+        df_sampled = df.copy()
+        logger.info(f"最終学習データ件数: {len(df_sampled):,}件（全量使用）")
         
         # 特徴量準備
         feature_cols = [col for col in df_sampled.columns 
