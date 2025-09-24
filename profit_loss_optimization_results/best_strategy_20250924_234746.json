@@ -1,0 +1,20 @@
+{
+  "best_strategy": {
+    "profit_target": 0.01,
+    "stop_loss": 0.005,
+    "max_holding_days": 1.0,
+    "total_return": 1980680378.023474,
+    "total_return_pct": 1980.680378023474,
+    "final_value": 1981680378.023474,
+    "max_drawdown": -0.05918034307868975,
+    "sharpe_ratio": 8.476958443810654,
+    "win_rate": 0.6717575757575758,
+    "total_trades": 4125.0,
+    "avg_return_per_trade": 614432.3372937286,
+    "avg_holding_days": 1.4,
+    "profit_factor": 2.4443186129944805
+  },
+  "optimization_date": "20250924_234746",
+  "system_accuracy": 0.785,
+  "total_patterns_tested": 13920
+}
