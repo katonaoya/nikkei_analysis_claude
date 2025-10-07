@@ -5,24 +5,292 @@ Enhanced Precision System V3 利確/損切り戦略最適化システム
 78.5%精度を活用した最適な利確・損切り・保有期間の包括的検証
 """
 
+import os
+import sys
+import glob
+from pathlib import Path
+from datetime import datetime, timedelta
+
+if str(Path(__file__).resolve().parent.parent) not in sys.path:
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 import logging
-from pathlib import Path
 import warnings
-from itertools import product
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing as mp
+
+from systems.enhanced_precision_system_v3 import EnhancedPrecisionSystemV3
 
 warnings.filterwarnings('ignore')
 
 # ログ設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+# 並列ワーカーで共有するデータ
+_worker_df = None
+_worker_config = None
+_worker_date_groups = None
+
+
+def _init_worker_shared(df, config):
+    """サブプロセス用にデータと設定を初期化"""
+    global _worker_df, _worker_config, _worker_date_groups
+    _worker_df = df.sort_values(['Date', 'Code']).reset_index(drop=True)
+    _worker_config = config
+
+    grouped = _worker_df.groupby('Date', sort=True)
+    indices = grouped.indices
+    _worker_date_groups = [(date, indices[date]) for date in sorted(indices.keys())]
+
+
+def _simulate_trading_strategy(df, profit_target, stop_loss, max_holding_days, config):
+    """利確/損切り戦略シミュレーション（共有設定版）"""
+    initial_capital = config['initial_capital']
+    max_positions = config['max_positions']
+    commission_rate = config['commission_rate']
+    slippage_rate = config['slippage_rate']
+
+    if _worker_df is not None:
+        data_source = _worker_df
+        date_groups = _worker_date_groups
+    else:
+        data_source = df.sort_values(['Date', 'Code']).reset_index(drop=True)
+        group = data_source.groupby('Date', sort=True)
+        date_groups = [(date, idx) for date, idx in sorted(group.indices.items(), key=lambda x: x[0])]
+
+    cash = initial_capital
+    positions = {}
+    trade_log = []
+    daily_portfolio_values = []
+
+    for idx, (current_date, row_idx) in enumerate(date_groups):
+        if idx < 60:
+            continue
+
+        current_data = data_source.iloc[row_idx].copy()
+        if len(current_data) == 0:
+            continue
+
+        positions_to_close = []
+        for code, position in positions.items():
+            code_data = current_data[current_data['Code'] == code]
+            if len(code_data) == 0:
+                continue
+
+            current_price = code_data['Close'].iloc[0]
+            entry_price = position['entry_price']
+            entry_date = position['entry_date']
+            holding_days = (current_date - entry_date).days
+
+            profit_rate = (current_price - entry_price) / entry_price
+
+            sell_reason = None
+            if holding_days >= max_holding_days:
+                sell_reason = "期間満了"
+            elif profit_rate >= profit_target:
+                sell_reason = "利確"
+            elif profit_rate <= -stop_loss:
+                sell_reason = "損切り"
+
+            if sell_reason:
+                shares = position['shares']
+                gross_proceeds = shares * current_price
+                commission = gross_proceeds * commission_rate
+                slippage = gross_proceeds * slippage_rate
+                net_proceeds = gross_proceeds - commission - slippage
+
+                profit_loss = net_proceeds - (shares * entry_price)
+                profit_loss_pct = profit_loss / (shares * entry_price)
+
+                trade_log.append({
+                    'date': current_date,
+                    'code': code,
+                    'action': 'SELL',
+                    'shares': shares,
+                    'price': current_price,
+                    'entry_price': entry_price,
+                    'holding_days': holding_days,
+                    'profit_loss': profit_loss,
+                    'profit_loss_pct': profit_loss_pct,
+                    'sell_reason': sell_reason,
+                    'pred_prob': position['pred_prob']
+                })
+
+                cash += net_proceeds
+                positions_to_close.append(code)
+
+        for code in positions_to_close:
+            del positions[code]
+
+        if len(positions) < max_positions:
+            available_slots = max_positions - len(positions)
+            available_data = current_data[~current_data['Code'].isin(positions.keys())]
+            if len(available_data) > 0:
+                top_candidates = available_data.nlargest(available_slots, 'pred_proba')
+
+                available_cash = cash * 0.95
+                investment_per_stock = available_cash / len(top_candidates) if len(top_candidates) > 0 else 0
+
+                for _, stock in top_candidates.iterrows():
+                    if cash < investment_per_stock:
+                        break
+
+                    code = stock['Code']
+                    price = stock['Close']
+                    pred_prob = stock['pred_proba']
+
+                    if investment_per_stock < 10000:
+                        continue
+
+                    shares = int(investment_per_stock / price)
+                    if shares == 0:
+                        continue
+
+                    gross_cost = shares * price
+                    commission = gross_cost * commission_rate
+                    slippage = gross_cost * slippage_rate
+                    total_cost = gross_cost + commission + slippage
+
+                    if total_cost <= cash:
+                        positions[code] = {
+                            'shares': shares,
+                            'entry_price': price,
+                            'entry_date': current_date,
+                            'pred_prob': pred_prob
+                        }
+
+                        trade_log.append({
+                            'date': current_date,
+                            'code': code,
+                            'action': 'BUY',
+                            'shares': shares,
+                            'price': price,
+                            'pred_prob': pred_prob
+                        })
+
+                        cash -= total_cost
+
+        portfolio_value = cash
+        for code, position in positions.items():
+            code_data = current_data[current_data['Code'] == code]
+            if len(code_data) > 0:
+                current_price = code_data['Close'].iloc[0]
+                portfolio_value += position['shares'] * current_price
+            else:
+                portfolio_value += position['shares'] * position['entry_price']
+
+        daily_portfolio_values.append({
+            'date': current_date,
+            'portfolio_value': portfolio_value,
+            'cash': cash,
+            'positions_count': len(positions)
+        })
+
+    return _calculate_strategy_performance(
+        trade_log,
+        daily_portfolio_values,
+        profit_target,
+        stop_loss,
+        max_holding_days,
+        config
+    )
+
+
+def _calculate_strategy_performance(trade_log, daily_values, profit_target, stop_loss, max_holding_days, config):
+    initial_capital = config['initial_capital']
+
+    if len(daily_values) == 0:
+        return {
+            'profit_target': profit_target,
+            'stop_loss': stop_loss,
+            'max_holding_days': max_holding_days,
+            'total_return': 0,
+            'total_return_pct': 0,
+            'final_value': initial_capital,
+            'max_drawdown': 0,
+            'sharpe_ratio': 0,
+            'win_rate': 0,
+            'total_trades': 0,
+            'avg_return_per_trade': 0,
+            'avg_holding_days': 0,
+            'profit_factor': 0
+        }
+
+    final_value = daily_values[-1]['portfolio_value']
+    total_return = final_value - initial_capital
+    total_return_pct = total_return / initial_capital
+
+    portfolio_values = [v['portfolio_value'] for v in daily_values]
+    peak = np.maximum.accumulate(portfolio_values)
+    drawdown = (np.array(portfolio_values) - peak) / peak
+    max_drawdown = np.min(drawdown)
+
+    daily_returns = []
+    for i in range(1, len(portfolio_values)):
+        daily_return = (portfolio_values[i] - portfolio_values[i-1]) / portfolio_values[i-1]
+        daily_returns.append(daily_return)
+
+    if len(daily_returns) > 1:
+        excess_return = np.mean(daily_returns) - (0.01 / 252)
+        sharpe_ratio = excess_return / np.std(daily_returns) * np.sqrt(252) if np.std(daily_returns) > 0 else 0
+    else:
+        sharpe_ratio = 0
+
+    sell_trades = [t for t in trade_log if t['action'] == 'SELL']
+    if len(sell_trades) > 0:
+        wins = [t for t in sell_trades if t['profit_loss'] > 0]
+        losses = [t for t in sell_trades if t['profit_loss'] <= 0]
+
+        win_rate = len(wins) / len(sell_trades)
+        avg_return_per_trade = np.mean([t['profit_loss'] for t in sell_trades])
+        avg_holding_days = np.mean([t['holding_days'] for t in sell_trades])
+
+        total_wins = sum(t['profit_loss'] for t in wins) if wins else 0
+        total_losses = sum(abs(t['profit_loss']) for t in losses) if losses else 0.01
+        profit_factor = total_wins / total_losses if total_losses > 0 else 0
+    else:
+        win_rate = 0
+        avg_return_per_trade = 0
+        avg_holding_days = 0
+        profit_factor = 0
+
+    return {
+        'profit_target': profit_target,
+        'stop_loss': stop_loss,
+        'max_holding_days': max_holding_days,
+        'total_return': total_return,
+        'total_return_pct': total_return_pct,
+        'final_value': final_value,
+        'max_drawdown': max_drawdown,
+        'sharpe_ratio': sharpe_ratio,
+        'win_rate': win_rate,
+        'total_trades': len(sell_trades),
+        'avg_return_per_trade': avg_return_per_trade,
+        'avg_holding_days': avg_holding_days,
+        'profit_factor': profit_factor
+    }
+
+
+def _process_combo(combo):
+    profit_target, stop_loss, max_holding_days = combo
+    if profit_target <= stop_loss:
+        return None
+    try:
+        return _simulate_trading_strategy(_worker_df, profit_target, stop_loss, max_holding_days, _worker_config)
+    except Exception as e:
+        logger.error(
+            "シミュレーションエラー (利確:%s, 損切:%s, 保有:%s日): %s",
+            f"{profit_target:.1%}",
+            f"{stop_loss:.1%}",
+            max_holding_days,
+            e
+        )
+        return None
 
 class EnhancedV3ProfitLossOptimizer:
     """Enhanced V3 利確/損切り戦略最適化システム"""
@@ -34,20 +302,56 @@ class EnhancedV3ProfitLossOptimizer:
         self.max_positions = 3  # Enhanced V3の推奨銘柄数
         self.commission_rate = 0.001  # 0.1%手数料
         self.slippage_rate = 0.0005  # 0.05%スリッページ
-        
+
         # 検証パラメータ範囲（より細かく設定）
         self.profit_targets = np.arange(0.01, 0.20, 0.005)  # 1%-20% (0.5%刻み)
         self.stop_losses = np.arange(0.005, 0.15, 0.005)    # 0.5%-15% (0.5%刻み)
-        self.holding_periods = list(range(1, 21))            # 最大保有日数は1〜20日に設定
-        
+        self.holding_periods = [1, 2, 3]                     # 最大保有日数は1〜3日に固定
+
+        # シミュレーション用に事前計算した日次データ
+        self.simulation_slices = []
+
+        # モデル・スケーラー等を読み込み
+        (
+            self.model,
+            self.scaler,
+            self.selector,
+            self.feature_cols,
+            self.model_path
+        ) = self._load_latest_model()
+
         # データ保存ディレクトリ
         self.results_dir = Path("profit_loss_optimization_results")
         self.results_dir.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Enhanced V3 利確/損切り最適化システム初期化完了")
         logger.info(f"パラメータ範囲: 利確{len(self.profit_targets)}種, 損切{len(self.stop_losses)}種, 保有{len(self.holding_periods)}種")
         logger.info(f"予想検証数: {len(self.profit_targets) * len(self.stop_losses) * len(self.holding_periods):,}パターン")
-    
+        logger.info(f"使用モデル: {self.model_path}")
+
+    def _load_latest_model(self):
+        """最新の学習済みモデルを読み込む"""
+        model_paths = sorted(
+            glob.glob('models/enhanced_v3/enhanced_model_v3_*.joblib'),
+            key=os.path.getmtime
+        )
+        if not model_paths:
+            raise FileNotFoundError('models/enhanced_v3/ 以下に学習済みモデルが見つかりません。')
+
+        latest_path = model_paths[-1]
+        model_data = joblib.load(latest_path)
+        required_keys = {'model', 'scaler', 'selector', 'feature_cols'}
+        if not required_keys.issubset(model_data.keys()):
+            raise RuntimeError(f"モデルファイルに必要な情報が含まれていません: {latest_path}")
+
+        return (
+            model_data['model'],
+            model_data.get('scaler'),
+            model_data.get('selector'),
+            model_data['feature_cols'],
+            latest_path
+        )
+
     def _find_latest_stock_file(self) -> str:
         """最新の株価データファイルを取得"""
         import glob
@@ -57,10 +361,10 @@ class EnhancedV3ProfitLossOptimizer:
             "data/real_jquants_data/nikkei225_real_data_*.pkl",
             "data/processed/nikkei225_*.parquet"
         ]
-        
+
         latest_file = None
         latest_time = 0
-        
+
         for pattern in patterns:
             files = glob.glob(pattern)
             for file in files:
@@ -69,85 +373,88 @@ class EnhancedV3ProfitLossOptimizer:
                     if file_time > latest_time:
                         latest_time = file_time
                         latest_file = file
-                except:
+                except Exception:
                     continue
-        
+
         if latest_file is None:
-            latest_file = "data/processed/nikkei225_complete_225stocks_20250909_230649.parquet"
-            logger.warning(f"最新株価ファイルが見つからないため、固定ファイルを使用: {latest_file}")
-        
-        return latest_file
-    
-    def _find_latest_external_file(self) -> str:
-        """最新の外部データファイルを取得"""
-        import glob
-        
-        patterns = [
-            "data/external_extended/external_integrated_*.parquet",
-            "data/processed/enhanced_integrated_data.parquet",
-            "data/processed/external_*.parquet"
-        ]
-        
-        latest_file = None
-        latest_time = 0
-        
-        for pattern in patterns:
-            files = glob.glob(pattern)
-            for file in files:
-                try:
-                    file_time = os.path.getmtime(file)
-                    if file_time > latest_time:
-                        latest_time = file_time
-                        latest_file = file
-                except:
-                    continue
-        
-        if latest_file is None:
-            latest_file = "data/external_extended/external_integrated_10years_20250909_231815.parquet"
-            logger.warning(f"最新外部データファイルが見つからないため、固定ファイルを使用: {latest_file}")
-        
+            raise FileNotFoundError("最新の株価データが見つかりません。データ取得処理を確認してください。")
+
         return latest_file
     
     def load_historical_data(self):
         """Enhanced V3対応の履歴データ読み込み"""
         logger.info("📊 Enhanced V3用履歴データ読み込み開始...")
-        
-        # 実際のデータファイルパス（Enhanced V3システム用）
+
+        system = EnhancedPrecisionSystemV3()
+
         try:
-            # 動的に最新ファイルを取得
-            data_file = self._find_latest_stock_file()
-            df = pd.read_parquet(data_file)
-            
-            # 外部指標データも統合（Enhanced V3の特徴）
-            external_file = self._find_latest_external_file()
-            external_df = pd.read_parquet(external_file)
-            
-            # データ統合
-            df['Date'] = pd.to_datetime(df['Date'])
-            external_df['Date'] = pd.to_datetime(external_df['Date'])
-            
-            # 外部データとマージ
-            integrated_df = pd.merge(df, external_df, on='Date', how='left')
-            
-            # 前方補完で欠損値処理
-            integrated_df = integrated_df.fillna(method='ffill').fillna(method='bfill')
-            
+            raw_df = system.load_and_integrate_data()
+            feature_df = system.create_enhanced_features(raw_df)
         except Exception as e:
-            logger.warning(f"統合データ読み込み失敗: {e}")
-            # フォールバック: 基本的な株価データのみ使用
-            integrated_df = self.generate_realistic_data()
-        
-        # 基本的な特徴量エンジニアリング
-        integrated_df = self.engineer_features(integrated_df)
-        
-        # Enhanced V3予測確率をシミュレート（実際の運用では保存済みモデルを使用）
-        integrated_df = self.simulate_enhanced_v3_predictions(integrated_df)
-        
-        logger.info(f"データ読み込み完了: {len(integrated_df):,}件, {integrated_df['Code'].nunique()}銘柄")
-        logger.info(f"期間: {integrated_df['Date'].min()} 〜 {integrated_df['Date'].max()}")
-        
-        return integrated_df
-    
+            logger.error(f"特徴量生成に失敗しました: {e}")
+            raise RuntimeError("実データの前処理に失敗したため、最適化を中断します。")
+
+        feature_df = feature_df.sort_values(['Date', 'Code']).reset_index(drop=True)
+
+        missing_cols = [col for col in self.feature_cols if col not in feature_df.columns]
+        if missing_cols:
+            raise RuntimeError(f"学習時の特徴量が見つかりません: {missing_cols}")
+
+        X = feature_df[self.feature_cols].replace([np.inf, -np.inf], np.nan)
+        X = X.ffill().fillna(0)
+
+        if self.selector is not None:
+            X_transformed = self.selector.transform(X.values)
+        else:
+            X_transformed = X.values
+
+        if self.scaler is not None:
+            X_transformed = self.scaler.transform(X_transformed)
+
+        pred_proba = self.model.predict_proba(X_transformed)[:, 1]
+
+        prediction_df = feature_df[['Date', 'Code', 'Close']].copy()
+        prediction_df['pred_proba'] = pred_proba.astype('float32')
+
+        # 日次上位5銘柄に絞り込み
+        prediction_df = (
+            prediction_df.groupby('Date', group_keys=False)
+            .apply(lambda g: g.nlargest(5, 'pred_proba'))
+            .reset_index(drop=True)
+        )
+
+        prediction_df['Close'] = prediction_df['Close'].astype('float32')
+
+        self.simulation_slices = self._prepare_simulation_slices(prediction_df)
+
+        logger.info(
+            "データ読み込み完了: %s件, %s営業日, %s銘柄",
+            f"{len(prediction_df):,}",
+            prediction_df['Date'].nunique(),
+            prediction_df['Code'].nunique()
+        )
+        logger.info(f"期間: {prediction_df['Date'].min()} 〜 {prediction_df['Date'].max()}")
+
+        return prediction_df
+
+    def _prepare_simulation_slices(self, df: pd.DataFrame):
+        """日次ごとの銘柄配列を事前計算してメモリ効率を高める"""
+        logger.info("🧮 シミュレーション用データを構築中...")
+        grouped = df.groupby('Date', sort=True)
+        slices = []
+        for date, group in grouped:
+            codes = group['Code'].to_numpy(dtype=np.int32, copy=True)
+            close = group['Close'].to_numpy(dtype=np.float32, copy=True)
+            proba = group['pred_proba'].to_numpy(dtype=np.float32, copy=True)
+            slices.append({
+                'date': date,
+                'codes': codes,
+                'close': close,
+                'proba': proba
+            })
+        logger.info(f"🧮 シミュレーション用データ件数: {len(slices)}日")
+        return slices
+
     def generate_realistic_data(self):
         """現実的なテストデータ生成（データファイルが見つからない場合）"""
         logger.info("📊 テスト用リアリスティックデータ生成...")
@@ -283,41 +590,46 @@ class EnhancedV3ProfitLossOptimizer:
         
         return df
     
-    def simulate_trading_strategy(self, df, profit_target, stop_loss, max_holding_days):
-        """個別戦略のトレーディングシミュレーション"""
-        
-        # データを日付でソート
-        df_sorted = df.sort_values(['Date', 'Code']).reset_index(drop=True)
-        unique_dates = sorted(df_sorted['Date'].unique())
-        
-        # ポートフォリオ状態
+    def simulate_trading_strategy(self, profit_target, stop_loss, max_holding_days):
+        """個別利確/損切り戦略のシミュレーション"""
+
+        if not self.simulation_slices:
+            raise RuntimeError("シミュレーション用データが準備されていません。")
+
         cash = self.initial_capital
-        positions = {}  # {code: {'shares': int, 'entry_price': float, 'entry_date': datetime, 'pred_prob': float}}
+        positions = {}
         trade_log = []
         daily_portfolio_values = []
-        
-        for current_date in unique_dates[60:]:  # 最初の60日は特徴量計算用
-            current_data = df_sorted[df_sorted['Date'] == current_date].copy()
-            
-            if len(current_data) == 0:
+
+        for idx in range(len(self.simulation_slices)):
+            if idx < 60:
+                continue  # 初期化期間
+
+            slice_data = self.simulation_slices[idx]
+            current_date = slice_data['date']
+            codes = slice_data['codes']
+            closes = slice_data['close']
+            probas = slice_data['proba']
+
+            if codes.size == 0:
                 continue
-            
-            # 既存ポジションの処理（売却判定）
+
+            code_to_idx = {int(code): i for i, code in enumerate(codes)}
+
+            # 既存ポジションの売却判定
             positions_to_close = []
             for code, position in positions.items():
-                code_data = current_data[current_data['Code'] == code]
-                if len(code_data) == 0:
+                idx_in_day = code_to_idx.get(code)
+                if idx_in_day is None:
                     continue
-                
-                current_price = code_data['Close'].iloc[0]
+
+                current_price = float(closes[idx_in_day])
                 entry_price = position['entry_price']
                 entry_date = position['entry_date']
                 holding_days = (current_date - entry_date).days
-                
-                # 利益率計算
+
                 profit_rate = (current_price - entry_price) / entry_price
-                
-                # 売却判定
+
                 sell_reason = None
                 if holding_days >= max_holding_days:
                     sell_reason = "期間満了"
@@ -325,18 +637,17 @@ class EnhancedV3ProfitLossOptimizer:
                     sell_reason = "利確"
                 elif profit_rate <= -stop_loss:
                     sell_reason = "損切り"
-                
+
                 if sell_reason:
-                    # 売却実行
                     shares = position['shares']
                     gross_proceeds = shares * current_price
                     commission = gross_proceeds * self.commission_rate
                     slippage = gross_proceeds * self.slippage_rate
                     net_proceeds = gross_proceeds - commission - slippage
-                    
+
                     profit_loss = net_proceeds - (shares * entry_price)
                     profit_loss_pct = profit_loss / (shares * entry_price)
-                    
+
                     trade_log.append({
                         'date': current_date,
                         'code': code,
@@ -350,97 +661,95 @@ class EnhancedV3ProfitLossOptimizer:
                         'sell_reason': sell_reason,
                         'pred_prob': position['pred_prob']
                     })
-                    
+
                     cash += net_proceeds
                     positions_to_close.append(code)
-            
-            # 売却したポジション削除
+
             for code in positions_to_close:
                 del positions[code]
-            
+
             # 新規購入判定
             if len(positions) < self.max_positions:
-                # Enhanced V3方式：上位確率の銘柄を選択
                 available_slots = self.max_positions - len(positions)
-                
-                # 既に保有していない銘柄で高確率のものを選択
-                available_data = current_data[~current_data['Code'].isin(positions.keys())]
-                if len(available_data) > 0:
-                    # 予測確率上位を選択
-                    top_candidates = available_data.nlargest(available_slots, 'pred_proba')
-                    
-                    # 投資金額計算
-                    available_cash = cash * 0.95  # 95%投資
-                    investment_per_stock = available_cash / len(top_candidates) if len(top_candidates) > 0 else 0
-                    
-                    for _, stock in top_candidates.iterrows():
-                        if cash < investment_per_stock:
-                            break
-                        
-                        code = stock['Code']
-                        price = stock['Close']
-                        pred_prob = stock['pred_proba']
-                        
-                        # 最低投資額チェック
-                        if investment_per_stock < 10000:  # 最低1万円
-                            continue
-                        
-                        # 株数計算
-                        shares = int(investment_per_stock / price)
-                        if shares == 0:
-                            continue
-                        
-                        # 実際のコスト計算
-                        gross_cost = shares * price
-                        commission = gross_cost * self.commission_rate
-                        slippage = gross_cost * self.slippage_rate
-                        total_cost = gross_cost + commission + slippage
-                        
-                        if total_cost <= cash:
-                            # 購入実行
-                            positions[code] = {
-                                'shares': shares,
-                                'entry_price': price,
-                                'entry_date': current_date,
-                                'pred_prob': pred_prob
-                            }
-                            
-                            trade_log.append({
-                                'date': current_date,
-                                'code': code,
-                                'action': 'BUY',
-                                'shares': shares,
-                                'price': price,
-                                'pred_prob': pred_prob
-                            })
-                            
-                            cash -= total_cost
-            
-            # 日次ポートフォリオ価値計算
+                if available_slots > 0:
+                    held_codes = np.array(list(positions.keys()), dtype=np.int32) if positions else np.array([], dtype=np.int32)
+                    if held_codes.size:
+                        available_mask = ~np.isin(codes, held_codes)
+                    else:
+                        available_mask = np.ones_like(codes, dtype=bool)
+
+                    available_indices = np.flatnonzero(available_mask)
+                    if available_indices.size > 0:
+                        sorted_idx = available_indices[np.argsort(probas[available_indices])[::-1]]
+                        top_indices = sorted_idx[:available_slots]
+
+                        available_cash = cash * 0.95
+                        if top_indices.size > 0:
+                            investment_per_stock = available_cash / top_indices.size
+                            for idx_candidate in top_indices:
+                                price = float(closes[idx_candidate])
+                                if investment_per_stock < 10000 or price <= 0:
+                                    continue
+
+                                shares = int(investment_per_stock / price)
+                                if shares == 0:
+                                    continue
+
+                                gross_cost = shares * price
+                                commission = gross_cost * self.commission_rate
+                                slippage = gross_cost * self.slippage_rate
+                                total_cost = gross_cost + commission + slippage
+
+                                if total_cost <= cash:
+                                    code = int(codes[idx_candidate])
+                                    pred_prob = float(probas[idx_candidate])
+
+                                    positions[code] = {
+                                        'shares': shares,
+                                        'entry_price': price,
+                                        'entry_date': current_date,
+                                        'pred_prob': pred_prob
+                                    }
+
+                                    trade_log.append({
+                                        'date': current_date,
+                                        'code': code,
+                                        'action': 'BUY',
+                                        'shares': shares,
+                                        'price': price,
+                                        'pred_prob': pred_prob
+                                    })
+
+                                    cash -= total_cost
+
+            # 日次ポートフォリオ価値
             portfolio_value = cash
             for code, position in positions.items():
-                code_data = current_data[current_data['Code'] == code]
-                if len(code_data) > 0:
-                    current_price = code_data['Close'].iloc[0]
-                    portfolio_value += position['shares'] * current_price
+                idx_in_day = code_to_idx.get(code)
+                if idx_in_day is not None:
+                    current_price = float(closes[idx_in_day])
                 else:
-                    portfolio_value += position['shares'] * position['entry_price']  # 価格不明時は簿価
-            
+                    current_price = position['entry_price']
+                portfolio_value += position['shares'] * current_price
+
             daily_portfolio_values.append({
                 'date': current_date,
                 'portfolio_value': portfolio_value,
                 'cash': cash,
                 'positions_count': len(positions)
             })
-        
-        # 戦略パフォーマンス計算
+
         return self.calculate_strategy_performance(
-            trade_log, daily_portfolio_values, profit_target, stop_loss, max_holding_days
+            trade_log,
+            daily_portfolio_values,
+            profit_target,
+            stop_loss,
+            max_holding_days
         )
-    
+
     def calculate_strategy_performance(self, trade_log, daily_values, profit_target, stop_loss, max_holding_days):
-        """戦略パフォーマンス計算"""
-        
+        """シミュレーション結果の集計"""
+
         if len(daily_values) == 0:
             return {
                 'profit_target': profit_target,
@@ -457,50 +766,41 @@ class EnhancedV3ProfitLossOptimizer:
                 'avg_holding_days': 0,
                 'profit_factor': 0
             }
-        
-        # 基本的な収益指標
+
         final_value = daily_values[-1]['portfolio_value']
         total_return = final_value - self.initial_capital
         total_return_pct = total_return / self.initial_capital
-        
-        # ドローダウン計算
-        portfolio_values = [v['portfolio_value'] for v in daily_values]
+
+        portfolio_values = np.array([v['portfolio_value'] for v in daily_values], dtype=np.float64)
         peak = np.maximum.accumulate(portfolio_values)
-        drawdown = (np.array(portfolio_values) - peak) / peak
-        max_drawdown = np.min(drawdown)
-        
-        # 日次リターン
-        daily_returns = []
-        for i in range(1, len(portfolio_values)):
-            daily_return = (portfolio_values[i] - portfolio_values[i-1]) / portfolio_values[i-1]
-            daily_returns.append(daily_return)
-        
-        # シャープレシオ
-        if len(daily_returns) > 1:
-            excess_return = np.mean(daily_returns) - (0.01 / 252)  # リスクフリーレート1%
-            sharpe_ratio = excess_return / np.std(daily_returns) * np.sqrt(252) if np.std(daily_returns) > 0 else 0
+        drawdown = (portfolio_values - peak) / peak
+        max_drawdown = float(drawdown.min()) if len(drawdown) else 0.0
+
+        daily_returns = np.diff(portfolio_values) / portfolio_values[:-1] if len(portfolio_values) > 1 else np.array([])
+        if daily_returns.size > 1 and np.std(daily_returns) > 0:
+            excess_return = np.mean(daily_returns) - (0.01 / 252)
+            sharpe_ratio = excess_return / np.std(daily_returns) * np.sqrt(252)
         else:
-            sharpe_ratio = 0
-        
-        # 取引分析
+            sharpe_ratio = 0.0
+
         sell_trades = [t for t in trade_log if t['action'] == 'SELL']
-        if len(sell_trades) > 0:
+        if sell_trades:
             wins = [t for t in sell_trades if t['profit_loss'] > 0]
             losses = [t for t in sell_trades if t['profit_loss'] <= 0]
-            
+
             win_rate = len(wins) / len(sell_trades)
-            avg_return_per_trade = np.mean([t['profit_loss'] for t in sell_trades])
-            avg_holding_days = np.mean([t['holding_days'] for t in sell_trades])
-            
-            total_wins = sum(t['profit_loss'] for t in wins) if wins else 0
+            avg_return_per_trade = float(np.mean([t['profit_loss'] for t in sell_trades]))
+            avg_holding_days = float(np.mean([t['holding_days'] for t in sell_trades]))
+
+            total_wins = sum(t['profit_loss'] for t in wins) if wins else 0.0
             total_losses = sum(abs(t['profit_loss']) for t in losses) if losses else 0.01
-            profit_factor = total_wins / total_losses if total_losses > 0 else 0
+            profit_factor = total_wins / total_losses if total_losses > 0 else 0.0
         else:
-            win_rate = 0
-            avg_return_per_trade = 0
-            avg_holding_days = 0
-            profit_factor = 0
-        
+            win_rate = 0.0
+            avg_return_per_trade = 0.0
+            avg_holding_days = 0.0
+            profit_factor = 0.0
+
         return {
             'profit_target': profit_target,
             'stop_loss': stop_loss,
@@ -517,109 +817,65 @@ class EnhancedV3ProfitLossOptimizer:
             'profit_factor': profit_factor
         }
     
-    def run_single_optimization(self, params):
-        """単一パラメータ組み合わせの最適化"""
-        df, profit_target, stop_loss, max_holding_days = params
-        
-        # 制約条件チェック
-        if profit_target <= stop_loss:
-            return None
-        
-        try:
-            result = self.simulate_trading_strategy(df, profit_target, stop_loss, max_holding_days)
-            return result
-        except Exception as e:
-            logger.error(f"シミュレーションエラー (利確:{profit_target:.1%}, 損切:{stop_loss:.1%}, 保有:{max_holding_days}日): {e}")
-            return None
-    
-    def run_comprehensive_optimization(self, df):
+    def run_comprehensive_optimization(self):
         """包括的最適化実行"""
         logger.info("🚀 Enhanced V3 包括的利確/損切り最適化開始...")
-        
-        # パラメータ組み合わせ生成（利確 > 損切りの制約付き）
-        combos_by_holding = {}
-        total_patterns = 0
-        for holding_days in self.holding_periods:
-            combos = []
-            for profit_target in self.profit_targets:
-                for stop_loss in self.stop_losses:
-                    if profit_target > stop_loss:
-                        combos.append((df, profit_target, stop_loss, holding_days))
-            combos_by_holding[holding_days] = combos
-            total_patterns += len(combos)
 
+        combos = [
+            (profit_target, stop_loss, holding_days)
+            for holding_days in self.holding_periods
+            for profit_target in self.profit_targets
+            for stop_loss in self.stop_losses
+            if profit_target > stop_loss
+        ]
+
+        total_patterns = len(combos)
         logger.info(f"検証パラメータ組み合わせ: {total_patterns:,}パターン")
-        logger.info("⏰ 注意: 全パターン検証のため時間がかかります（推定1-3時間）")
 
-        # 並列実行でパフォーマンス向上
-        cpu_count = min(mp.cpu_count(), 8)  # 最大8プロセス
-        logger.info(f"並列実行: {cpu_count}プロセス使用")
+        if total_patterns == 0:
+            logger.warning("検証対象となるパターンが存在しません")
+            return pd.DataFrame()
 
         results = []
         start_time = datetime.now()
-
-        processed_cases = 0
-
-        batch_size = 100
+        last_log_time = start_time
         progress_interval = timedelta(seconds=30)
-        last_log_time = start_time - progress_interval
-        for holding_days, combinations in combos_by_holding.items():
-            if not combinations:
-                logger.info(f"▶ 保有{holding_days}日: 対象パターンなし（利確 <= 損切）")
-                continue
 
-            logger.info(f"▶ 保有{holding_days}日: {len(combinations):,}パターン検証開始")
+        for idx, (profit_target, stop_loss, holding_days) in enumerate(combos, start=1):
+            try:
+                result = self.simulate_trading_strategy(profit_target, stop_loss, holding_days)
+                results.append(result)
+            except Exception as e:
+                logger.error(
+                    "シミュレーションエラー (利確:%s, 損切:%s, 保有:%s日): %s",
+                    f"{profit_target:.1%}",
+                    f"{stop_loss:.1%}",
+                    holding_days,
+                    e
+                )
 
-            with ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                for i in range(0, len(combinations), batch_size):
-                    batch = combinations[i:i+batch_size]
-                    batch_results = list(executor.map(self.run_single_optimization, batch))
+            now = datetime.now()
+            if idx == total_patterns or now - last_log_time >= progress_interval:
+                progress_pct = idx / total_patterns * 100
+                elapsed = now - start_time
+                best_return = max((r['total_return_pct'] for r in results), default=None)
+                logger.info(
+                    "進捗: %d/%d (%.1f%%) | 経過時間: %s | 有効結果: %d件 | 最高リターン: %s",
+                    idx,
+                    total_patterns,
+                    progress_pct,
+                    str(elapsed).split('.')[0],
+                    len(results),
+                    f"{best_return * 100:.2f}%" if best_return is not None else "N/A"
+                )
+                last_log_time = now
 
-                    # None結果を除外
-                    batch_results = [r for r in batch_results if r is not None]
-                    results.extend(batch_results)
-
-                    processed_cases += len(batch)
-
-                    now = datetime.now()
-                    should_log = (
-                        now - last_log_time >= progress_interval
-                        or processed_cases == total_patterns
-                        or i + len(batch) >= len(combinations)
-                    )
-
-                    if should_log:
-                        last_log_time = now
-                        progress_pct = processed_cases / total_patterns * 100 if total_patterns else 0
-                        elapsed = now - start_time
-
-                        if results:
-                            best_return = max(r['total_return_pct'] for r in results)
-                            logger.info(
-                                "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: %d件 | 最高リターン: %.2f%%",
-                                processed_cases,
-                                total_patterns,
-                                progress_pct,
-                                holding_days,
-                                min(i + len(batch), len(combinations)),
-                                len(combinations),
-                                str(elapsed).split('.')[0],
-                                len(results),
-                                best_return * 100
-                            )
-                        else:
-                            logger.info(
-                                "進捗: %d/%d (%.1f%%) | 保有%2d日: %d/%d | 経過時間: %s | 有効結果: 0件",
-                                processed_cases,
-                                total_patterns,
-                                progress_pct,
-                                holding_days,
-                                min(i + len(batch), len(combinations)),
-                                len(combinations),
-                                str(elapsed).split('.')[0]
-                            )
-
-        logger.info(f"🎉 最適化完了: {len(results):,}パターン検証完了")
+        elapsed = datetime.now() - start_time
+        logger.info(
+            "🎉 最適化完了: %d件の有効結果 | 総処理時間: %s",
+            len(results),
+            str(elapsed).split('.')[0]
+        )
 
         return pd.DataFrame(results)
     
@@ -757,8 +1013,14 @@ class EnhancedV3ProfitLossOptimizer:
             aggfunc='mean'
         )
         
-        sns.heatmap(pivot_return, annot=False, cmap='RdYlGn', center=0, 
-                    ax=axes[0, 0], cbar_kws={'format': '%.1%'})
+        heat = sns.heatmap(
+            pivot_return,
+            annot=False,
+            cmap='RdYlGn',
+            center=0,
+            ax=axes[0, 0],
+            cbar_kws={'format': '%.1f'}
+        )
         axes[0, 0].set_title('利確 vs 損切 (平均総リターン)')
         axes[0, 0].set_xlabel('損切閾値')
         axes[0, 0].set_ylabel('利確閾値')
@@ -843,7 +1105,7 @@ class EnhancedV3ProfitLossOptimizer:
             df = self.load_historical_data()
             
             # 2. 包括的最適化実行
-            results_df = self.run_comprehensive_optimization(df)
+            results_df = self.run_comprehensive_optimization()
             
             # 3. 結果分析・可視化
             best_strategy, top_strategies = self.analyze_and_visualize_results(results_df)

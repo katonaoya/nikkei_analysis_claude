@@ -1,0 +1,6 @@
+{
+  "target_return": 0.01,
+  "min_probability": 0.66,
+  "top_n": 3,
+  "max_per_sector": 2
+}

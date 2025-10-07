@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-V3モデル対応推奨銘柄システム
+終値ベース推奨銘柄システム
 最新学習済みモデルの指標に同期
 """
 
@@ -17,7 +17,7 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.market_calendar import JapanMarketCalendar
-from systems.enhanced_precision_system_v3 import EnhancedPrecisionSystemV3
+from systems.enhanced_close_return_system_v1 import CloseReturnPrecisionSystemV1
 
 # ログ設定
 logging.basicConfig(
@@ -27,28 +27,54 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class DailyStockRecommendationV3:
-    """V3モデル対応推奨銘柄システム"""
-    
-    def __init__(self):
+class DailyStockRecommendationCloseV1:
+    """終値ベース推奨銘柄システム"""
+
+    def __init__(self, target_return: float = 0.01, imbalance_boost: float = 1.0, min_probability: float = None, max_per_sector: int = None, config_path: str = "config/close_recommendation_config.json"):
         self.model_dir = Path("models")
         self.data_dir = Path("data")
         self.results_dir = Path("production_reports")
         self.results_dir.mkdir(parents=True, exist_ok=True)
-        
+
+        self.config = self._load_config(config_path)
+        if target_return is None:
+            target_return = self.config.get("target_return", 0.01)
+        if min_probability is None:
+            min_probability = self.config.get("min_probability", 0.60)
+        if max_per_sector is None:
+            max_per_sector = self.config.get("max_per_sector", 3)
+
         # モデルコンポーネント
         self.model = None
         self.scaler = None
         self.selector = None
         self.feature_names = None
         self.model_accuracy = None
-        self.pipeline = EnhancedPrecisionSystemV3()
+        self.pipeline = CloseReturnPrecisionSystemV1(target_return=target_return, imbalance_boost=imbalance_boost)
         
         # 会社名マッピング
         self.company_names = {}
+        self.company_sectors = {}
+        self.calibration = None
+        self.imbalance_strategy = getattr(self.pipeline, 'imbalance_strategy', 'scale_pos')
+        self.focal_gamma = getattr(self.pipeline, 'focal_gamma', 2.0)
+        self.positive_oversample_ratio = getattr(self.pipeline, 'positive_oversample_ratio', 1.0)
         self._load_company_names()
-        self._load_v3_model()
-    
+        self._load_close_model()
+        self.target_return = target_return
+        self.imbalance_boost = imbalance_boost
+        self.min_probability = min_probability
+        self.max_per_sector = max_per_sector
+
+    def _load_config(self, path: str) -> dict:
+        cfg_path = Path(path)
+        if cfg_path.exists():
+            try:
+                return json.loads(cfg_path.read_text())
+            except Exception as exc:
+                logger.warning(f"設定ファイル読み込み失敗: {exc}")
+        return {}
+
     def _load_company_names(self):
         """会社名マッピングを読み込み"""
         try:
@@ -60,6 +86,11 @@ class DailyStockRecommendationV3:
                     code = str(row['target_code'])
                     name = row['target_name'].replace('（株）', '').replace('(株)', '')
                     self.company_names[code] = name
+                    sector = row.get('sector') if 'sector' in row else None
+                    if isinstance(sector, str) and sector:
+                        self.company_sectors[code] = sector
+                    else:
+                        self.company_sectors[code] = 'Unknown'
                 logger.info(f"✅ 会社名マッピング読み込み完了: {len(self.company_names)}社")
             else:
                 logger.warning("会社名CSVファイルが見つかりません")
@@ -70,15 +101,15 @@ class DailyStockRecommendationV3:
         """銘柄コードから会社名を取得"""
         return self.company_names.get(str(code), f"銘柄{code}")
     
-    def _load_v3_model(self):
-        """V3モデルを読み込み"""
+    def _load_close_model(self):
+        """終値ベースモデルを読み込み"""
         try:
-            # V3モデルファイルを探す
-            model_files = list(self.model_dir.glob("enhanced_v3/*enhanced_model_v3*.joblib"))
+            # 終値ベースモデルファイルを探す
+            model_files = list(self.model_dir.glob("enhanced_close_v1/*close_model_v1*.joblib"))
             if not model_files:
-                raise FileNotFoundError("V3モデルが見つかりません")
+                raise FileNotFoundError("終値ベースモデルが見つかりません")
             
-            # 最新のV3モデルを使用
+            # 最新の終値ベースモデルを使用
             latest_model = max(model_files, key=lambda x: x.stat().st_mtime)
             model_data = joblib.load(latest_model)
             
@@ -87,14 +118,33 @@ class DailyStockRecommendationV3:
             self.selector = model_data.get('selector')
             self.feature_names = model_data['feature_cols']
             self.model_accuracy = model_data.get('accuracy')
+            self.calibration = model_data.get('calibration')
+            model_target_return = model_data.get('target_return')
+            if model_target_return is not None and abs(model_target_return - self.pipeline.target_return) > 1e-6:
+                logger.info(f"target_return updated from model: {model_target_return:.4f}")
+                self.pipeline.target_return = model_target_return
+                self.target_return = model_target_return
 
-            logger.info(f"✅ V3モデル読み込み完了: {latest_model.name}")
+            model_imbalance_boost = model_data.get('imbalance_boost')
+            if model_imbalance_boost is not None:
+                if abs(model_imbalance_boost - self.pipeline.imbalance_boost) > 1e-6:
+                    logger.info(f"imbalance_boost updated from model: {model_imbalance_boost:.3f}")
+                self.pipeline.imbalance_boost = model_imbalance_boost
+                self.imbalance_boost = model_imbalance_boost
+
+            for attr in ("imbalance_strategy", "focal_gamma", "positive_oversample_ratio"):
+                model_value = model_data.get(attr)
+                if model_value is not None:
+                    setattr(self.pipeline, attr, model_value)
+                    setattr(self, attr, model_value)
+
+            logger.info(f"✅ 終値ベースモデル読み込み完了: {latest_model.name}")
             logger.info(f"📊 特徴量数: {len(self.feature_names)}")
             if self.model_accuracy is not None:
                 logger.info(f"📈 モデル精度: {self.model_accuracy:.4f}")
             
         except Exception as e:
-            logger.error(f"V3モデル読み込みエラー: {e}")
+            logger.error(f"終値ベースモデル読み込みエラー: {e}")
             raise
     
     def _prepare_feature_frame(self, target_date: pd.Timestamp) -> pd.DataFrame:
@@ -145,7 +195,7 @@ class DailyStockRecommendationV3:
                 try:
                     code = row['Code']
                     
-                    # V3モデルの特徴量を抽出（欠損列は0で補完）
+                    # 終値ベースモデルの特徴量を抽出（欠損列は0で補完）
                     feature_values = []
                     missing_cols = []
                     for col in self.feature_names:
@@ -174,19 +224,26 @@ class DailyStockRecommendationV3:
                     
                     # 予測
                     prediction_proba = self.model.predict_proba(features)[0][1]
+                    if self.calibration is not None:
+                        coef = self.calibration.get('coef', 0.0)
+                        intercept = self.calibration.get('intercept', 0.0)
+                        linear = coef * prediction_proba + intercept
+                        prediction_proba = 1 / (1 + np.exp(-linear))
                     
-                    # 推奨条件（60%以上）
-                    if prediction_proba >= 0.60:
+                    # 推奨条件（デフォルト60%以上）
+                    if prediction_proba >= self.min_probability:
+                        target_return = float(getattr(self.pipeline, 'target_return', 0.01))
                         recommendations.append({
                             'code': code,
                             'company_name': self._get_company_name(code),
                             'prediction_probability': prediction_proba,
                             'current_price': row['Close'],
                             'volume': row['Volume'],
-                            'target_price': row['Close'] * 1.07,
-                            'stop_loss_price': row['Close'] * 0.95,
-                            'expected_return': 7.0,
-                            'holding_period': 10,
+                            'target_price': row['Close'] * (1 + target_return),
+                            'stop_loss_price': row['Close'] * (1 - target_return),
+                            'expected_return': target_return * 100,
+                            'holding_period': 1,
+                            'sector': self.company_sectors.get(str(code), 'Unknown')
                         })
                 
                 except Exception as e:
@@ -195,7 +252,18 @@ class DailyStockRecommendationV3:
             
             # 確信度でソート
             recommendations.sort(key=lambda x: x['prediction_probability'], reverse=True)
-            recommendations = recommendations[:top_n]
+
+            selected = []
+            sector_counts = {}
+            for rec in recommendations:
+                sector = rec.get('sector', 'Unknown')
+                if sector_counts.get(sector, 0) >= self.max_per_sector:
+                    continue
+                selected.append(rec)
+                sector_counts[sector] = sector_counts.get(sector, 0) + 1
+                if len(selected) >= top_n:
+                    break
+            recommendations = selected
             
             logger.info(f"✅ 推奨銘柄生成完了: {len(recommendations)}銘柄")
             return recommendations
@@ -204,7 +272,7 @@ class DailyStockRecommendationV3:
             logger.error(f"推奨銘柄生成エラー: {e}")
             return []
     
-    def create_report(self, target_date_str=None, top_n=5):
+    def create_report(self, target_date_str=None, top_n=None):
         """レポート作成"""
         if target_date_str is None:
             # 営業日ベースで分析対象日を決定
@@ -214,6 +282,8 @@ class DailyStockRecommendationV3:
         
         target_date = pd.to_datetime(target_date_str)
         next_date = JapanMarketCalendar.get_next_market_day(target_date)
+        if top_n is None:
+            top_n = self.config.get('top_n', 5)
         
         recommendations = self.generate_recommendations(target_date_str, top_n)
         
@@ -222,14 +292,15 @@ class DailyStockRecommendationV3:
         if self.model_accuracy is not None:
             model_accuracy_display = f"{self.model_accuracy * 100:.2f}%"
 
-        report = f"""📈 日次株価予測レポート（V3モデル対応）
+        report = f"""📈 日次株価予測レポート（終値ベースモデル対応）
 =====================================
 
 📅 基準日付: {target_date_str}
 📅 推奨取引日: {next_date.strftime('%Y-%m-%d')}
 🏆 推奨銘柄数: {len(recommendations)}銘柄 (TOP {top_n})
-⚙️ モデル精度: {model_accuracy_display} (Enhanced Precision System V3)
-🎯 推奨閾値: 60%以上の予測確信度
+⚙️ モデル精度: {model_accuracy_display} (Close-to-Close Precision System V1)
+📈 判定閾値: {getattr(self.pipeline, 'target_return', 0.01)*100:.1f}% (終値→終値)
+🎯 推奨閾値: 翌営業日終値が+{getattr(self.pipeline, 'target_return', 0.01)*100:.1f}%以上になる確率 {self.min_probability*100:.0f}%以上
 
 =====================================
 🎯 推奨銘柄一覧
@@ -244,8 +315,9 @@ class DailyStockRecommendationV3:
 {i}位: {rec['company_name']} ({rec['code']})
   💰 現在価格: ¥{rec['current_price']:,.0f}
   📈 目標価格: ¥{rec['target_price']:,.0f} (+{rec['expected_return']:.1f}%)
-  📉 損切価格: ¥{rec['stop_loss_price']:,.0f} (-5.0%)
+  📉 損切価格: ¥{rec['stop_loss_price']:,.0f} (-{rec['expected_return']:.1f}%)
   🎯 予測確率: {rec['prediction_probability']:.1%}
+  🏢 セクター: {rec.get('sector', 'Unknown')}
   📊 出来高: {rec['volume']:,}株
   ⏰ 推奨保有: {rec['holding_period']}日間
 """
@@ -254,7 +326,8 @@ class DailyStockRecommendationV3:
 =====================================
 📊 システム情報
 =====================================
-🤖 使用モデル: Enhanced Precision System V3
+🤖 使用モデル: Close-to-Close Precision System V1
+🕒 判定条件: 前日終値→翌日終値で+{self.pipeline.target_return*100:.1f}%
 🎯 モデル精度: {model_accuracy_display}
 📊 特徴量数: {len(self.feature_names)}個
 📅 レポート生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -273,13 +346,17 @@ class DailyStockRecommendationV3:
         return report
 
 def main():
-    parser = argparse.ArgumentParser(description="V3モデル対応推奨銘柄システム")
+    parser = argparse.ArgumentParser(description="終値ベース推奨銘柄システム")
     parser.add_argument("--date", type=str, help="対象日付 (YYYY-MM-DD)")
-    parser.add_argument("--top", type=int, default=5, help="上位N銘柄")
-    
+    parser.add_argument("--top", type=int, default=None, help="上位N銘柄")
+    parser.add_argument("--target-return", type=float, default=None, help="終値ベース判定閾値 (例: 0.8%→0.008)")
+    parser.add_argument("--imbalance-boost", type=float, default=1.0, help="scale_pos_weight に掛ける倍率")
+    parser.add_argument("--min-probability", type=float, default=None, help="推奨に用いる最低予測確率")
+    parser.add_argument("--max-per-sector", type=int, default=None, help="セクターあたりの上限銘柄数")
+
     args = parser.parse_args()
-    
-    system = DailyStockRecommendationV3()
+
+    system = DailyStockRecommendationCloseV1(target_return=args.target_return, imbalance_boost=args.imbalance_boost, min_probability=args.min_probability, max_per_sector=args.max_per_sector)
     report = system.create_report(args.date, args.top)
     print(report)
 
