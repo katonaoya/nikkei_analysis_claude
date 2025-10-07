@@ -124,16 +124,16 @@ class DailyTradingAutomation:
         
         # STEP 3: Enhanced V3 AI予測実行
         success = self.run_command(
-            "python systems/enhanced_precision_system_v3.py",
-            "Enhanced V3 AI予測システム実行 (78.5%精度)",
+            "python systems/enhanced_close_return_system_v1.py",
+            "Close-to-Close V1 AI予測システム実行 (終値→終値)",
             timeout=1200  # 20分
         )
         results.append(("AI予測", success))
         
         # STEP 4: 日次推奨銘柄レポート生成
         success = self.run_command(
-            "python reports/daily_stock_recommendation_v3.py",
-            "日次推奨銘柄レポート生成",
+            "python reports/daily_stock_recommendation_close_v1.py",
+            "終値ベース推奨銘柄レポート生成",
             timeout=300  # 5分
         )
         results.append(("推奨レポート", success))
