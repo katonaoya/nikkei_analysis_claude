@@ -16,8 +16,9 @@ import lightgbm as lgb
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import RobustScaler
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, brier_score_loss
 from sklearn.linear_model import LogisticRegression
+from sklearn.isotonic import IsotonicRegression
 import joblib
 from datetime import datetime, timedelta
 import logging
@@ -44,6 +45,11 @@ class CloseReturnPrecisionSystemV1:
         imbalance_strategy: str = "scale_pos",
         focal_gamma: float = 2.0,
         positive_oversample_ratio: float = 1.0,
+        calibration_method: str = "platt",
+        calibration_window_days: int = 45,
+        calibration_min_samples: int = 4500,
+        calibration_min_positives: int = 500,
+        calibration_min_negatives: int = 500,
     ):
         """初期化"""
         # デフォルトファイルパス（動的に最新ファイルを取得）
@@ -60,6 +66,20 @@ class CloseReturnPrecisionSystemV1:
         self.focal_gamma = focal_gamma
         self.positive_oversample_ratio = max(positive_oversample_ratio, 1.0)
         self._rng = np.random.default_rng(42)
+
+        calibration_method_normalized = (calibration_method or "none").lower()
+        valid_calibration_methods = {"platt", "isotonic", "none"}
+        if calibration_method_normalized not in valid_calibration_methods:
+            logger.warning(
+                "未知のキャリブレーション手法 '%s' が指定されたため 'platt' を使用します",
+                calibration_method,
+            )
+            calibration_method_normalized = "platt"
+        self.calibration_method = calibration_method_normalized
+        self.calibration_window_days = max(int(calibration_window_days or 0), 0)
+        self.calibration_min_samples = max(int(calibration_min_samples or 0), 0)
+        self.calibration_min_positives = max(int(calibration_min_positives or 0), 0)
+        self.calibration_min_negatives = max(int(calibration_min_negatives or 0), 0)
         
         # 保存ディレクトリ
         self.output_dir = Path("models/enhanced_close_v1")
@@ -76,6 +96,15 @@ class CloseReturnPrecisionSystemV1:
             logger.info(f"Focal Gamma: {self.focal_gamma:.2f}")
         if self.positive_oversample_ratio > 1.0:
             logger.info(f"Positive oversample ratio: {self.positive_oversample_ratio:.2f}")
+        if self.calibration_method != "none":
+            logger.info(
+                "キャリブレーション設定: method=%s, window_days=%d, min_samples=%d, min_pos=%d, min_neg=%d",
+                self.calibration_method,
+                self.calibration_window_days,
+                self.calibration_min_samples,
+                self.calibration_min_positives,
+                self.calibration_min_negatives,
+            )
 
     def _load_model_params(self) -> dict:
         params_path = Path('config/close_model_params.json')
@@ -245,23 +274,20 @@ class CloseReturnPrecisionSystemV1:
         
         # 全期間のデータを使用（既存構成を踏襲）
         df_recent = df.copy()
-        
+
         logger.info(f"全期間データ使用: {len(df_recent):,}件（約10年間）")
-        
-        # 処理用のDataFrameを準備（メモリ効率を重視）
-        enhanced_df = df_recent.copy()
-        
-        # 全銘柄を一括処理（既存構成を踏襲）
-        unique_codes = enhanced_df['Code'].unique()
+
+        # 処理用のDataFrameを準備（銘柄単位で処理してリークを防止）
+        enhanced_dfs = []
+        unique_codes = df_recent['Code'].unique()
         logger.info(f"全銘柄一括処理: {len(unique_codes)}銘柄")
-        
+
         for code in unique_codes:
-            mask = enhanced_df['Code'] == code
-            code_data = enhanced_df[mask].copy().sort_values('Date')
+            code_data = df_recent[df_recent['Code'] == code].copy().sort_values('Date')
             
             if len(code_data) < 50:  # データが少ない銘柄はスキップ
                 continue
-            
+           
             # 基本特徴量（必要最小限）
             code_data['Returns'] = code_data['Close'].pct_change()
             code_data['High_Low_Ratio'] = code_data['High'] / code_data['Low']
@@ -306,8 +332,13 @@ class CloseReturnPrecisionSystemV1:
                 if any(key in col.lower() for key in ['usdjpy', 'vix']):
                     if code_data[col].notna().sum() > 50:
                         code_data[f'{col}_change'] = code_data[col].pct_change()
-            
-            enhanced_df.loc[mask] = code_data
+
+            enhanced_dfs.append(code_data)
+
+        if not enhanced_dfs:
+            raise ValueError("特徴量を生成できる銘柄がありません")
+
+        enhanced_df = pd.concat(enhanced_dfs, ignore_index=True)
         
         # 目的変数作成
         logger.info("目的変数作成...")
@@ -412,6 +443,261 @@ class CloseReturnPrecisionSystemV1:
         X_aug = pd.concat([X, X_extra], axis=0, ignore_index=True)
         y_aug = pd.concat([y, y_extra], axis=0, ignore_index=True)
         return X_aug, y_aug
+
+    def _split_calibration_holdout(
+        self,
+        df_sorted: pd.DataFrame,
+    ) -> Tuple[pd.DataFrame, Optional[pd.DataFrame]]:
+        """キャリブレーション用のホールドアウトを日付ベースで分離"""
+        if self.calibration_method == "none":
+            return df_sorted, None
+
+        unique_dates = np.array(sorted(pd.Series(df_sorted['Date']).unique()))
+        total_dates = len(unique_dates)
+        if total_dates == 0:
+            return df_sorted, None
+
+        desired_days = self.calibration_window_days or max(int(total_dates * 0.15), 1)
+        calibration_days = min(desired_days, total_dates)
+
+        min_train_dates = max(int(total_dates * 0.5), 60)
+        while calibration_days > 0 and total_dates - calibration_days < min_train_dates:
+            calibration_days -= 1
+
+        if calibration_days <= 0:
+            logger.info("キャリブレーション用の期間が確保できなかったためスキップします")
+            return df_sorted, None
+
+        calibration_dates = unique_dates[-calibration_days:]
+        mask = df_sorted['Date'].isin(calibration_dates)
+        calibration_df = df_sorted[mask].copy()
+        train_df = df_sorted[~mask].copy()
+
+        if calibration_df.empty:
+            logger.info("キャリブレーション用データが抽出できなかったためスキップします")
+            return df_sorted, None
+
+        total_samples = len(calibration_df)
+        positive_count = int(calibration_df['Target'].sum())
+        negative_count = int(total_samples - positive_count)
+
+        if self.calibration_min_samples and total_samples < self.calibration_min_samples:
+            logger.warning(
+                "キャリブレーションサンプルが不足 (%d件 < 最低%d件) のためスキップします",
+                total_samples,
+                self.calibration_min_samples,
+            )
+            return df_sorted, None
+
+        if self.calibration_min_positives and positive_count < self.calibration_min_positives:
+            logger.warning(
+                "キャリブレーション用正例が不足 (%d件 < 最低%d件) のためスキップします",
+                positive_count,
+                self.calibration_min_positives,
+            )
+            return df_sorted, None
+
+        if self.calibration_min_negatives and negative_count < self.calibration_min_negatives:
+            logger.warning(
+                "キャリブレーション用負例が不足 (%d件 < 最低%d件) のためスキップします",
+                negative_count,
+                self.calibration_min_negatives,
+            )
+            return df_sorted, None
+
+        logger.info(
+            "📏 キャリブレーションホールドアウト確保: %s〜%s / %d件 (正例率 %.3f)",
+            calibration_df['Date'].min().date(),
+            calibration_df['Date'].max().date(),
+            total_samples,
+            calibration_df['Target'].mean(),
+        )
+
+        return train_df, calibration_df
+
+    @staticmethod
+    def _build_calibration_bins(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10):
+        y_true_arr = np.asarray(y_true)
+        y_prob_arr = np.clip(np.asarray(y_prob, dtype=float), 1e-6, 1 - 1e-6)
+        bins = np.linspace(0.0, 1.0, n_bins + 1)
+        bin_indices = np.digitize(y_prob_arr, bins, right=False) - 1
+
+        total = len(y_true_arr)
+        bin_data = []
+        ece = 0.0
+        mce = 0.0
+
+        for idx in range(n_bins):
+            mask = bin_indices == idx
+            count = int(mask.sum())
+            lower = float(bins[idx])
+            upper = float(bins[idx + 1])
+            if count == 0:
+                bin_data.append(
+                    {
+                        'lower': lower,
+                        'upper': upper,
+                        'count': 0,
+                        'avg_pred': None,
+                        'actual_rate': None,
+                    }
+                )
+                continue
+
+            avg_pred = float(y_prob_arr[mask].mean())
+            actual_rate = float(y_true_arr[mask].mean())
+            diff = abs(actual_rate - avg_pred)
+            weight = count / total if total else 0.0
+            ece += weight * diff
+            mce = max(mce, diff)
+            bin_data.append(
+                {
+                    'lower': lower,
+                    'upper': upper,
+                    'count': count,
+                    'avg_pred': avg_pred,
+                    'actual_rate': actual_rate,
+                }
+            )
+
+        return bin_data, float(ece), float(mce)
+
+    def _compute_calibration_metrics(
+        self,
+        y_true: np.ndarray,
+        raw_proba: np.ndarray,
+        calibrated_proba: np.ndarray,
+    ) -> dict:
+        metrics = {}
+        try:
+            metrics['brier_raw'] = float(brier_score_loss(y_true, raw_proba))
+            metrics['brier_calibrated'] = float(brier_score_loss(y_true, calibrated_proba))
+        except ValueError:
+            metrics['brier_raw'] = float('nan')
+            metrics['brier_calibrated'] = float('nan')
+
+        bins_raw, ece_raw, mce_raw = self._build_calibration_bins(y_true, raw_proba)
+        bins_cal, ece_cal, mce_cal = self._build_calibration_bins(y_true, calibrated_proba)
+
+        metrics['ece_raw'] = ece_raw
+        metrics['ece_calibrated'] = ece_cal
+        metrics['mce_raw'] = mce_raw
+        metrics['mce_calibrated'] = mce_cal
+        metrics['bins_raw'] = bins_raw
+        metrics['bins_calibrated'] = bins_cal
+        metrics['sample_size'] = int(len(y_true))
+        metrics['positive_rate'] = float(np.mean(y_true)) if len(y_true) else float('nan')
+        return metrics
+
+    def _fit_calibrator(
+        self,
+        model: lgb.LGBMClassifier,
+        selector: Optional[SelectKBest],
+        scaler: Optional[RobustScaler],
+        feature_cols: list,
+        calibration_df: Optional[pd.DataFrame],
+    ) -> dict:
+        if calibration_df is None or self.calibration_method == "none":
+            return {'method': 'none', 'model': None, 'reason': 'not_available'}
+
+        X_cal = calibration_df[feature_cols].copy()
+        y_cal = calibration_df['Target'].astype(int)
+
+        if selector is not None:
+            X_cal = selector.transform(X_cal)
+        if scaler is not None:
+            X_cal = scaler.transform(X_cal)
+
+        raw_proba = model.predict_proba(X_cal)[:, 1]
+        raw_proba = np.clip(raw_proba, 1e-6, 1 - 1e-6)
+
+        method = self.calibration_method
+        calibrator_model = None
+        calibrated_proba = raw_proba
+
+        try:
+            if method == 'platt':
+                calibrator_model = LogisticRegression(solver='lbfgs', max_iter=1000)
+                calibrator_model.fit(raw_proba.reshape(-1, 1), y_cal)
+                calibrated_proba = calibrator_model.predict_proba(raw_proba.reshape(-1, 1))[:, 1]
+            elif method == 'isotonic':
+                calibrator_model = IsotonicRegression(out_of_bounds='clip')
+                calibrator_model.fit(raw_proba, y_cal)
+                calibrated_proba = calibrator_model.predict(raw_proba)
+            else:
+                return {'method': 'none', 'model': None, 'reason': 'unsupported_method'}
+        except Exception as exc:
+            logger.warning("キャリブレーション学習に失敗したためスキップします: %s", exc)
+            return {'method': 'none', 'model': None, 'reason': 'fit_failed', 'error': str(exc)}
+
+        metrics = self._compute_calibration_metrics(y_cal.to_numpy(), raw_proba, calibrated_proba)
+
+        if metrics.get('brier_raw') is not None and metrics.get('brier_calibrated') is not None:
+            logger.info(
+                "🎯 キャリブレーション指標: Brier %.4f → %.4f / ECE %.4f → %.4f",
+                metrics['brier_raw'],
+                metrics['brier_calibrated'],
+                metrics['ece_raw'],
+                metrics['ece_calibrated'],
+            )
+
+        calibration_info = {
+            'method': method,
+            'model': calibrator_model,
+            'metrics': metrics,
+            'holdout': {
+                'start_date': str(calibration_df['Date'].min().date()),
+                'end_date': str(calibration_df['Date'].max().date()),
+                'sample_size': metrics.get('sample_size', len(calibration_df)),
+                'positive_rate': metrics.get('positive_rate'),
+            },
+            'reason': None,
+        }
+
+        if method == 'platt' and calibrator_model is not None:
+            calibration_info['coef'] = float(calibrator_model.coef_[0][0])
+            calibration_info['intercept'] = float(calibrator_model.intercept_[0])
+
+        return calibration_info
+
+    @staticmethod
+    def apply_calibration(probabilities, calibration_info: Optional[dict]):
+        """保存されたキャリブレーション情報を用いて確率を調整"""
+        if not calibration_info:
+            return probabilities
+
+        probs_array = np.asarray(probabilities, dtype=float)
+        was_scalar = probs_array.shape == ()
+        probs_flat = probs_array.reshape(-1)
+
+        method = (calibration_info.get('method') or calibration_info.get('type') or 'platt').lower()
+
+        try:
+            if method == 'platt':
+                model = calibration_info.get('model')
+                if model is not None:
+                    calibrated = model.predict_proba(probs_flat.reshape(-1, 1))[:, 1]
+                elif 'coef' in calibration_info and 'intercept' in calibration_info:
+                    linear = calibration_info['coef'] * probs_flat + calibration_info['intercept']
+                    calibrated = 1.0 / (1.0 + np.exp(-linear))
+                else:
+                    return probabilities
+            elif method == 'isotonic':
+                model = calibration_info.get('model')
+                if model is None:
+                    return probabilities
+                calibrated = model.predict(probs_flat)
+            elif method == 'none':
+                return probabilities
+            else:
+                return probabilities
+        except Exception:
+            return probabilities
+
+        calibrated = np.clip(calibrated, 1e-6, 1 - 1e-6)
+        if was_scalar:
+            return float(calibrated[0])
+        return calibrated.reshape(probs_array.shape)
     
     def walk_forward_optimization(self, df: pd.DataFrame, initial_train_size: int = 252*2) -> list:
         """ウォークフォワード最適化（メモリ最適化版）"""
@@ -420,19 +706,28 @@ class CloseReturnPrecisionSystemV1:
         # 全量データで検証（再現性と陽性サンプルを最大限活用）
         df_sampled = df.copy()
         logger.info(f"ウォークフォワード入力データ: {len(df_sampled):,}件（全量使用）")
-        
-        # 日付でソート
-        df_sorted = df_sampled.sort_values(['Date', 'Code']).copy()
+
+        # ソートして銘柄毎に欠損を前方補完
+        df_sorted = df_sampled.sort_values(['Code', 'Date']).reset_index(drop=True)
+        feature_cols = [
+            col for col in df_sorted.columns
+            if col not in ['Date', 'Code', 'Target'] and str(df_sorted[col].dtype) in ['int64', 'float64', 'int32', 'float32']
+        ]
+        df_sorted[feature_cols] = (
+            df_sorted.groupby('Code')[feature_cols]
+            .apply(lambda g: g.fillna(method='ffill'))
+            .reset_index(level=0, drop=True)
+        )
+        df_sorted[feature_cols] = df_sorted[feature_cols].fillna(0)
+
         unique_dates = sorted(df_sorted['Date'].unique())
         
         results = []
         step_size = 21  # 約1ヶ月リバランスで期間解像度を向上
         
         # 特徴量カラム選択（重要な特徴量のみ）
-        feature_cols = [col for col in df_sorted.columns 
-                       if col not in ['Date', 'Code', 'Target'] and 
-                       str(df_sorted[col].dtype) in ['int64', 'float64', 'int32', 'float32']]
-        
+        # feature_cols は前段で定義済み
+
         # 特徴量数制限
         if len(feature_cols) > 30:
             # 欠損値が少ない特徴量を優先選択
@@ -468,10 +763,6 @@ class CloseReturnPrecisionSystemV1:
                 y_train = train_df['Target'].copy()
                 X_test = test_df[feature_cols].copy()
                 y_test = test_df['Target'].copy()
-
-                # 欠損値処理
-                X_train = X_train.fillna(method='ffill').fillna(0)
-                X_test = X_test.fillna(method='ffill').fillna(0)
 
                 # オーバーサンプリング
                 X_train, y_train = self._apply_positive_oversample(X_train, y_train)
@@ -540,29 +831,45 @@ class CloseReturnPrecisionSystemV1:
         # 全量データを使用（サンプリングを廃止）
         df_sampled = df.copy()
         logger.info(f"最終学習データ件数: {len(df_sampled):,}件（全量使用）")
-        
+
         # 特徴量準備
-        feature_cols = [col for col in df_sampled.columns 
-                       if col not in ['Date', 'Code', 'Target'] and 
-                       str(df_sampled[col].dtype) in ['int64', 'float64', 'int32', 'float32']]
-        
+        df_sorted = df_sampled.sort_values(['Code', 'Date']).reset_index(drop=True)
+        feature_cols = [
+            col for col in df_sorted.columns
+            if col not in ['Date', 'Code', 'Target'] and str(df_sorted[col].dtype) in ['int64', 'float64', 'int32', 'float32']
+        ]
+
         # 特徴量数制限
         if len(feature_cols) > 25:
-            non_null_counts = df_sampled[feature_cols].count()
+            non_null_counts = df_sorted[feature_cols].count()
             feature_cols = non_null_counts.nlargest(25).index.tolist()
-        
-        X = df_sampled[feature_cols].fillna(method='ffill').fillna(0)
-        y = df_sampled['Target']
+
+        df_sorted[feature_cols] = (
+            df_sorted.groupby('Code')[feature_cols]
+            .apply(lambda g: g.fillna(method='ffill'))
+            .reset_index(level=0, drop=True)
+        )
+        df_sorted[feature_cols] = df_sorted[feature_cols].fillna(0)
+
+        train_df, calibration_df = self._split_calibration_holdout(df_sorted)
+        training_df = train_df if calibration_df is not None else df_sorted
+
+        X = training_df[feature_cols].copy()
+        y = training_df['Target'].copy()
         X, y = self._apply_positive_oversample(X, y)
 
-        # 時系列分割（最後20%をテスト用）
-        df_sorted = df_sampled.sort_values('Date')
-        split_idx = int(len(df_sorted) * 0.8)
+        dataset_size = len(X)
+        if dataset_size < 10:
+            raise ValueError("学習に十分なサンプル数がありません")
 
-        X_train = X[:split_idx]
-        X_test = X[split_idx:]
-        y_train = y[:split_idx]
-        y_test = y[split_idx:]
+        split_idx = int(dataset_size * 0.8)
+        if split_idx <= 0 or split_idx >= dataset_size:
+            split_idx = dataset_size // 2
+
+        X_train = X.iloc[:split_idx]
+        X_test = X.iloc[split_idx:]
+        y_train = y.iloc[:split_idx]
+        y_test = y.iloc[split_idx:]
         
         # 特徴量選択（既存構成を踏襲）
         selector = SelectKBest(score_func=f_classif, k=min(30, len(feature_cols)))
@@ -597,9 +904,10 @@ class CloseReturnPrecisionSystemV1:
         y_pred = model.predict(X_test_scaled)
         y_pred_proba = model.predict_proba(X_test_scaled)[:, 1]
 
-        calibrator = LogisticRegression(solver='lbfgs')
-        calibrator.fit(y_pred_proba.reshape(-1, 1), y_test)
-        calibrated_proba = calibrator.predict_proba(y_pred_proba.reshape(-1, 1))[:, 1]
+        calibration_info = self._fit_calibrator(model, selector, scaler, feature_cols, calibration_df)
+        if calibration_info.get('method') == 'none' and calibration_info.get('reason'):
+            logger.info("キャリブレーションをスキップしました: %s", calibration_info.get('reason'))
+        calibrated_proba = self.apply_calibration(y_pred_proba, calibration_info)
 
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred, zero_division=0)
@@ -631,10 +939,12 @@ class CloseReturnPrecisionSystemV1:
             'imbalance_strategy': self.imbalance_strategy,
             'focal_gamma': self.focal_gamma,
             'positive_oversample_ratio': self.positive_oversample_ratio,
-            'calibration': {
-                'coef': calibrator.coef_[0][0],
-                'intercept': calibrator.intercept_[0]
-            }
+            'calibration_method': self.calibration_method,
+            'calibration_window_days': self.calibration_window_days,
+            'calibration_min_samples': self.calibration_min_samples,
+            'calibration_min_positives': self.calibration_min_positives,
+            'calibration_min_negatives': self.calibration_min_negatives,
+            'calibration': calibration_info
         }
         
         model_file = self.output_dir / f"close_model_v1_{accuracy:.4f}acc_{timestamp}.joblib"
@@ -684,7 +994,13 @@ class CloseReturnPrecisionSystemV1:
                 'model_params': self.model_params,
                 'external_data_integrated': os.path.exists(self.external_file),
                 'imbalance_strategy': self.imbalance_strategy,
-                'positive_oversample_ratio': self.positive_oversample_ratio
+                'positive_oversample_ratio': self.positive_oversample_ratio,
+                'calibration_method': self.calibration_method,
+                'calibration_window_days': self.calibration_window_days,
+                'calibration_min_samples': self.calibration_min_samples,
+                'calibration_min_positives': self.calibration_min_positives,
+                'calibration_min_negatives': self.calibration_min_negatives,
+                'calibration_metrics': final_model.get('calibration', {}).get('metrics') if isinstance(final_model.get('calibration'), dict) else None,
             }
             
             results_file = self.output_dir / f"close_results_v1_{datetime.now().strftime('%Y%m%d_%H%M%S')}.joblib"
@@ -709,6 +1025,11 @@ def main():
     parser.add_argument('--imbalance-strategy', type=str, default='scale_pos', choices=['scale_pos', 'balanced', 'focal', 'none'], help='追加のサンプル重み戦略')
     parser.add_argument('--focal-gamma', type=float, default=2.0, help='focal戦略用ガンマ値 (imbalance-strategy=focal のみ使用)')
     parser.add_argument('--positive-oversample-ratio', type=float, default=1.0, help='正例の単純オーバーサンプリング倍率 (>1で増幅)')
+    parser.add_argument('--calibration-method', type=str, default='platt', choices=['platt', 'isotonic', 'none'], help='予測確率キャリブレーション手法')
+    parser.add_argument('--calibration-window-days', type=int, default=45, help='キャリブレーション用に確保する営業日数（終端側）')
+    parser.add_argument('--calibration-min-samples', type=int, default=4500, help='キャリブレーションを実施するために必要な最小サンプル数')
+    parser.add_argument('--calibration-min-positives', type=int, default=500, help='キャリブレーションに必要な最小正例件数')
+    parser.add_argument('--calibration-min-negatives', type=int, default=500, help='キャリブレーションに必要な最小負例件数')
     args = parser.parse_args()
 
     system = CloseReturnPrecisionSystemV1(
@@ -717,6 +1038,11 @@ def main():
         imbalance_strategy=args.imbalance_strategy,
         focal_gamma=args.focal_gamma,
         positive_oversample_ratio=args.positive_oversample_ratio,
+        calibration_method=args.calibration_method,
+        calibration_window_days=args.calibration_window_days,
+        calibration_min_samples=args.calibration_min_samples,
+        calibration_min_positives=args.calibration_min_positives,
+        calibration_min_negatives=args.calibration_min_negatives,
     )
     results = system.run_enhanced_system()
     

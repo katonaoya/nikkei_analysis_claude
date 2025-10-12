@@ -1,5 +1,8 @@
+import numpy as np
 import pandas as pd
 import pytest
+from sklearn.isotonic import IsotonicRegression
+from sklearn.linear_model import LogisticRegression
 
 from systems.enhanced_close_return_system_v1 import CloseReturnPrecisionSystemV1
 
@@ -45,3 +48,44 @@ def test_apply_positive_oversample_increases_positive_count():
     X_aug, y_aug = system._apply_positive_oversample(X, y)
     assert len(y_aug) >= len(y)
     assert y_aug.sum() >= y.sum()
+
+
+def test_apply_calibration_with_platt_model_object():
+    probs = np.linspace(0.1, 0.9, 9)
+    labels = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1])
+    calibrator = LogisticRegression(solver='lbfgs', max_iter=1000)
+    calibrator.fit(probs.reshape(-1, 1), labels)
+
+    calibration_info = {
+        'method': 'platt',
+        'model': calibrator,
+    }
+
+    adjusted = CloseReturnPrecisionSystemV1.apply_calibration(probs, calibration_info)
+
+    assert adjusted.shape == probs.shape
+    assert np.all(adjusted >= 0) and np.all(adjusted <= 1)
+    assert np.max(np.abs(adjusted - probs)) > 1e-3
+
+
+def test_apply_calibration_backward_compat_dict():
+    original = 0.5
+    calibration_info = {'coef': 2.0, 'intercept': -1.0}
+    adjusted = CloseReturnPrecisionSystemV1.apply_calibration(original, calibration_info)
+    expected = 1 / (1 + np.exp(-((2.0 * original) - 1.0)))
+    assert adjusted == pytest.approx(expected)
+
+
+def test_apply_calibration_isotonic_method():
+    probs = np.linspace(0.0, 1.0, 6)
+    labels = np.array([0, 0, 0, 1, 1, 1])
+    calibrator = IsotonicRegression(out_of_bounds='clip')
+    calibrator.fit(probs, labels)
+
+    calibration_info = {'method': 'isotonic', 'model': calibrator}
+    adjusted = CloseReturnPrecisionSystemV1.apply_calibration(probs, calibration_info)
+
+    assert adjusted.shape == probs.shape
+    assert np.all(adjusted >= 0) and np.all(adjusted <= 1)
+    assert adjusted[0] <= adjusted[-1]
+    assert np.max(np.abs(adjusted - probs)) > 0.1

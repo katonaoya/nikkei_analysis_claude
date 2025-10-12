@@ -52,11 +52,7 @@ def compute_probabilities(dataset: pd.DataFrame, model_data: dict) -> np.ndarray
     proba = model.predict_proba(X)[:, 1]
 
     calibration = model_data.get('calibration')
-    if calibration is not None:
-        coef = calibration.get('coef', 0.0)
-        intercept = calibration.get('intercept', 0.0)
-        linear = coef * proba + intercept
-        proba = 1 / (1 + np.exp(-linear))
+    proba = CloseReturnPrecisionSystemV1.apply_calibration(proba, calibration)
     return proba
 
 

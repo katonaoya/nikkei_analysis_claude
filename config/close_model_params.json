@@ -7,5 +7,10 @@
   "colsample_bytree": 0.7751562629524077,
   "n_estimators": 225,
   "reg_alpha": 0.12296449060070444,
-  "reg_lambda": 0.17954248005819606
+  "reg_lambda": 0.17954248005819606,
+  "calibration_method": "platt",
+  "calibration_window_days": 30,
+  "calibration_min_samples": 3000,
+  "calibration_min_positives": 300,
+  "calibration_min_negatives": 300
 }

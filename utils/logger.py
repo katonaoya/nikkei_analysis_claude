@@ -64,7 +64,12 @@ class StructuredLogger:
         
         # File handler
         if log_to_file:
-            log_dir = self.config.get_data_dir('logs')
+            log_dir_override = self.config.get('logging.logs_dir')
+            if log_dir_override:
+                log_dir = Path(log_dir_override)
+                log_dir.mkdir(parents=True, exist_ok=True)
+            else:
+                log_dir = self.config.get_data_dir('logs')
             log_file = log_dir / f"{self.name}.log"
             
             if log_format == 'json':
@@ -75,7 +80,7 @@ class StructuredLogger:
                     rotation=rotation,
                     retention=retention,
                     serialize=True,
-                    enqueue=True
+                    enqueue=False
                 )
             else:
                 logger.add(
@@ -84,10 +89,30 @@ class StructuredLogger:
                     level=log_level,
                     rotation=rotation,
                     retention=retention,
-                    enqueue=True
+                    enqueue=False
                 )
-    
-    
+
+    def _json_formatter(self, record) -> str:
+        """Format loguru record to JSON string (used in tests)."""
+        timestamp = getattr(record, "time", datetime.now())
+        if isinstance(timestamp, str):
+            try:
+                timestamp = datetime.fromisoformat(timestamp)
+            except ValueError:
+                timestamp = datetime.now()
+
+        payload = {
+            "timestamp": timestamp.isoformat(),
+            "level": getattr(record.level, "name", "INFO"),
+            "service": self.name,
+            "module": getattr(record, "module", None),
+            "function": getattr(record, "function", None),
+            "line": getattr(record, "line", None),
+            "message": getattr(record, "message", ""),
+            "extra": getattr(record, "extra", {}) or {},
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
     def bind(self, **kwargs):
         """Bind additional context to logger"""
         return logger.bind(**kwargs)
