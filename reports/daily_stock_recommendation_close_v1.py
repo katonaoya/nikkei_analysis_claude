@@ -190,6 +190,7 @@ class DailyStockRecommendationCloseV1:
             target_data = target_data.ffill().fillna(0)
             
             recommendations = []
+            fallback_candidates = []
             
             for _, row in target_data.iterrows():
                 try:
@@ -224,27 +225,30 @@ class DailyStockRecommendationCloseV1:
                     
                     # 予測
                     prediction_proba = self.model.predict_proba(features)[0][1]
-                    if self.calibration is not None:
-                        coef = self.calibration.get('coef', 0.0)
-                        intercept = self.calibration.get('intercept', 0.0)
-                        linear = coef * prediction_proba + intercept
-                        prediction_proba = 1 / (1 + np.exp(-linear))
-                    
-                    # 推奨条件（デフォルト60%以上）
-                    if prediction_proba >= self.min_probability:
-                        target_return = float(getattr(self.pipeline, 'target_return', 0.01))
-                        recommendations.append({
-                            'code': code,
-                            'company_name': self._get_company_name(code),
-                            'prediction_probability': prediction_proba,
-                            'current_price': row['Close'],
-                            'volume': row['Volume'],
-                            'target_price': row['Close'] * (1 + target_return),
-                            'stop_loss_price': row['Close'] * (1 - target_return),
-                            'expected_return': target_return * 100,
-                            'holding_period': 1,
-                            'sector': self.company_sectors.get(str(code), 'Unknown')
-                        })
+                    prediction_proba = CloseReturnPrecisionSystemV1.apply_calibration(
+                        prediction_proba,
+                        self.calibration,
+                    )
+
+                    target_return = float(getattr(self.pipeline, 'target_return', 0.01))
+                    candidate = {
+                        'code': code,
+                        'company_name': self._get_company_name(code),
+                        'prediction_probability': prediction_proba,
+                        'current_price': row['Close'],
+                        'volume': row['Volume'],
+                        'target_price': row['Close'] * (1 + target_return),
+                        'stop_loss_price': row['Close'] * (1 - target_return),
+                        'expected_return': target_return * 100,
+                        'holding_period': 1,
+                        'sector': self.company_sectors.get(str(code), 'Unknown'),
+                        'passed_threshold': prediction_proba >= self.min_probability,
+                        'threshold': self.min_probability,
+                    }
+
+                    fallback_candidates.append(candidate)
+                    if candidate['passed_threshold']:
+                        recommendations.append(candidate)
                 
                 except Exception as e:
                     logger.debug(f"銘柄 {code} の予測エラー: {e}")
@@ -255,14 +259,48 @@ class DailyStockRecommendationCloseV1:
 
             selected = []
             sector_counts = {}
-            for rec in recommendations:
-                sector = rec.get('sector', 'Unknown')
+
+            def try_append(candidate):
+                sector = candidate.get('sector', 'Unknown')
                 if sector_counts.get(sector, 0) >= self.max_per_sector:
-                    continue
-                selected.append(rec)
+                    return False
+                if any(existing['code'] == candidate['code'] for existing in selected):
+                    return False
+                selected.append(candidate)
                 sector_counts[sector] = sector_counts.get(sector, 0) + 1
+                return True
+
+            for rec in recommendations:
                 if len(selected) >= top_n:
                     break
+                try_append(rec)
+
+            if len(selected) < top_n:
+                fallback_sorted = sorted(
+                    fallback_candidates,
+                    key=lambda x: x['prediction_probability'],
+                    reverse=True,
+                )
+                for cand in fallback_sorted:
+                    if len(selected) >= top_n:
+                        break
+                    if cand['passed_threshold']:
+                        continue
+                    try_append(cand)
+
+            if len(selected) < top_n:
+                fallback_sorted = sorted(
+                    fallback_candidates,
+                    key=lambda x: x['prediction_probability'],
+                    reverse=True,
+                )
+                for cand in fallback_sorted:
+                    if len(selected) >= top_n:
+                        break
+                    if any(existing['code'] == cand['code'] for existing in selected):
+                        continue
+                    selected.append(cand)
+
             recommendations = selected
             
             logger.info(f"✅ 推奨銘柄生成完了: {len(recommendations)}銘柄")
@@ -311,12 +349,16 @@ class DailyStockRecommendationCloseV1:
             report += "\n❌ 推奨条件を満たす銘柄がありませんでした。\n"
         else:
             for i, rec in enumerate(recommendations, 1):
+                note = ""
+                if not rec.get('passed_threshold', True):
+                    note = " (閾値未達)"
                 report += f"""
 {i}位: {rec['company_name']} ({rec['code']})
   💰 現在価格: ¥{rec['current_price']:,.0f}
   📈 目標価格: ¥{rec['target_price']:,.0f} (+{rec['expected_return']:.1f}%)
   📉 損切価格: ¥{rec['stop_loss_price']:,.0f} (-{rec['expected_return']:.1f}%)
-  🎯 予測確率: {rec['prediction_probability']:.1%}
+  🎯 予測確率: {rec['prediction_probability']:.1%}{note}
+  📏 判定閾値: {rec.get('threshold', self.min_probability):.0%}
   🏢 セクター: {rec.get('sector', 'Unknown')}
   📊 出来高: {rec['volume']:,}株
   ⏰ 推奨保有: {rec['holding_period']}日間

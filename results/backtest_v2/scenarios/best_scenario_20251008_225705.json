@@ -1,0 +1,21 @@
+{
+  "initial_capital": 1000000.0,
+  "final_equity": 1053113.5642720053,
+  "total_return": 0.05311356427200531,
+  "cagr": 0.0843727222402415,
+  "sharpe_ratio": 2.3833735074023066,
+  "max_drawdown": -0.00895070523835284,
+  "num_trades": 10,
+  "win_rate": 0.9,
+  "avg_trade_return": 0.03705560528391279,
+  "median_trade_return": 0.04895052473763127,
+  "avg_holding_days": 6.7,
+  "scenario_id": "pt0p05_sl0p04_slip0p0005_tc0p0005_delay0_ps150000_mp3",
+  "position_size": 150000.0,
+  "max_positions": 3,
+  "profit_target": 0.05,
+  "stop_loss": 0.04,
+  "slippage": 0.0005,
+  "transaction_cost": 0.0005,
+  "entry_delay_days": 0
+}
