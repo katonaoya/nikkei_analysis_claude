@@ -14,6 +14,7 @@ import joblib
 import argparse
 import json
 import sys
+from typing import List, Dict, Optional
 
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.market_calendar import JapanMarketCalendar
@@ -163,104 +164,118 @@ class DailyStockRecommendationCloseV1:
             logger.error(f"特徴量データ準備エラー: {e}")
             raise
     
+    def _prepare_target_slice(self, target_date: pd.Timestamp) -> pd.DataFrame:
+        feature_df = self._prepare_feature_frame(target_date)
+        target_data = feature_df[feature_df['Date'] == target_date].copy()
+        if target_data.empty:
+            return target_data
+        target_data = target_data.replace([np.inf, -np.inf], np.nan)
+        target_data = target_data.ffill().fillna(0)
+        return target_data
+
+    def _predict_candidates(self, target_data: pd.DataFrame) -> List[Dict[str, object]]:
+        candidates: List[Dict[str, object]] = []
+        target_return = float(getattr(self.pipeline, 'target_return', 0.01))
+
+        for _, row in target_data.iterrows():
+            code = row.get('Code')
+            try:
+                feature_values: List[float] = []
+                missing_cols: List[str] = []
+                for col in self.feature_names:
+                    if col in row:
+                        feature_values.append(row[col])
+                    else:
+                        feature_values.append(0.0)
+                        missing_cols.append(col)
+
+                if missing_cols:
+                    logger.debug(
+                        "銘柄 %s: 欠損特徴量 %s を0で補完",
+                        code,
+                        ", ".join(missing_cols)
+                    )
+
+                features = pd.DataFrame([feature_values], columns=self.feature_names)
+
+                if self.scaler is not None:
+                    features = self.scaler.transform(features)
+
+                if self.selector is not None:
+                    features = self.selector.transform(features)
+
+                prediction_proba = self.model.predict_proba(features)[0][1]
+                prediction_proba = CloseReturnPrecisionSystemV1.apply_calibration(
+                    prediction_proba,
+                    self.calibration,
+                )
+
+                candidate = {
+                    'analysis_date': pd.Timestamp(row['Date']).normalize(),
+                    'next_trade_date': JapanMarketCalendar.get_next_market_day(pd.Timestamp(row['Date'])),
+                    'code': code,
+                    'company_name': self._get_company_name(code),
+                    'sector': self.company_sectors.get(str(code), 'Unknown'),
+                    'prediction_probability': float(prediction_proba),
+                    'current_price': float(row['Close']),
+                    'volume': float(row['Volume']) if 'Volume' in row else np.nan,
+                    'target_price': float(row['Close'] * (1 + target_return)),
+                    'stop_loss_price': float(row['Close'] * (1 - target_return)),
+                    'expected_return': target_return * 100,
+                    'holding_period': 1,
+                    'passed_threshold': prediction_proba >= self.min_probability,
+                    'threshold': self.min_probability,
+                }
+                candidates.append(candidate)
+            except Exception as exc:
+                logger.debug(f"銘柄 {code} の予測エラー: {exc}")
+                continue
+
+        return candidates
+
+    def predict_all_candidates(self, target_date_str: Optional[str] = None) -> pd.DataFrame:
+        """対象日の全候補に対する終値ベース予測結果を返す"""
+        if target_date_str is None:
+            target_date = JapanMarketCalendar.get_target_date_for_analysis()
+            target_date_str = str(target_date)
+            logger.info(f"🗓️ 自動選択された分析対象日: {target_date_str}")
+
+        target_date = pd.to_datetime(target_date_str)
+        logger.info(f"🚀 {target_date_str}の終値ベース予測を計算中...")
+
+        target_data = self._prepare_target_slice(target_date)
+        if target_data.empty:
+            logger.warning(f"対象日 {target_date_str} のデータが見つかりません")
+            return pd.DataFrame()
+
+        logger.info(f"📊 終値モデル対象銘柄数: {len(target_data)}銘柄")
+        candidates = self._predict_candidates(target_data)
+        if not candidates:
+            logger.warning("終値モデルで有効な候補が生成されませんでした")
+            return pd.DataFrame()
+
+        return pd.DataFrame(candidates)
+
     def generate_recommendations(self, target_date_str=None, top_n=5):
         """推奨銘柄を生成"""
         try:
-            if target_date_str is None:
-                # 営業日ベースで分析対象日を決定
-                target_date = JapanMarketCalendar.get_target_date_for_analysis()
-                target_date_str = str(target_date)
-                logger.info(f"🗓️ 自動選択された分析対象日: {target_date_str}")
-            
-            target_date = pd.to_datetime(target_date_str)
-            next_date = JapanMarketCalendar.get_next_market_day(target_date)
-            
-            logger.info(f"🚀 {target_date_str}の推奨銘柄分析開始...")
-            
-            feature_df = self._prepare_feature_frame(target_date)
-            target_data = feature_df[feature_df['Date'] == target_date].copy()
-            
-            if len(target_data) == 0:
-                logger.warning(f"対象日 {target_date_str} のデータが見つかりません")
+            candidates_df = self.predict_all_candidates(target_date_str)
+            if candidates_df.empty:
                 return []
 
-            logger.info(f"📊 対象日の銘柄数: {len(target_data)}銘柄")
+            candidates_df = candidates_df.sort_values('prediction_probability', ascending=False)
 
-            target_data = target_data.replace([np.inf, -np.inf], np.nan)
-            target_data = target_data.ffill().fillna(0)
-            
             recommendations = []
-            fallback_candidates = []
-            
-            for _, row in target_data.iterrows():
-                try:
-                    code = row['Code']
-                    
-                    # 終値ベースモデルの特徴量を抽出（欠損列は0で補完）
-                    feature_values = []
-                    missing_cols = []
-                    for col in self.feature_names:
-                        if col in row:
-                            feature_values.append(row[col])
-                        else:
-                            feature_values.append(0.0)
-                            missing_cols.append(col)
+            fallback_candidates: List[Dict[str, object]] = []
+            for candidate in candidates_df.to_dict(orient='records'):
+                fallback_candidates.append(candidate)
+                if candidate.get('passed_threshold'):
+                    recommendations.append(candidate)
 
-                    if missing_cols:
-                        logger.debug(
-                            "銘柄 %s: 欠損特徴量 %s を0で補完",
-                            code,
-                            ", ".join(missing_cols)
-                        )
+            selected: List[Dict[str, object]] = []
+            sector_counts: Dict[str, int] = {}
 
-                    features = pd.DataFrame([feature_values], columns=self.feature_names)
-
-                    # スケーリング
-                    if self.scaler is not None:
-                        features = self.scaler.transform(features)
-
-                    # 特徴量選択
-                    if self.selector is not None:
-                        features = self.selector.transform(features)
-                    
-                    # 予測
-                    prediction_proba = self.model.predict_proba(features)[0][1]
-                    prediction_proba = CloseReturnPrecisionSystemV1.apply_calibration(
-                        prediction_proba,
-                        self.calibration,
-                    )
-
-                    target_return = float(getattr(self.pipeline, 'target_return', 0.01))
-                    candidate = {
-                        'code': code,
-                        'company_name': self._get_company_name(code),
-                        'prediction_probability': prediction_proba,
-                        'current_price': row['Close'],
-                        'volume': row['Volume'],
-                        'target_price': row['Close'] * (1 + target_return),
-                        'stop_loss_price': row['Close'] * (1 - target_return),
-                        'expected_return': target_return * 100,
-                        'holding_period': 1,
-                        'sector': self.company_sectors.get(str(code), 'Unknown'),
-                        'passed_threshold': prediction_proba >= self.min_probability,
-                        'threshold': self.min_probability,
-                    }
-
-                    fallback_candidates.append(candidate)
-                    if candidate['passed_threshold']:
-                        recommendations.append(candidate)
-                
-                except Exception as e:
-                    logger.debug(f"銘柄 {code} の予測エラー: {e}")
-                    continue
-            
-            # 確信度でソート
-            recommendations.sort(key=lambda x: x['prediction_probability'], reverse=True)
-
-            selected = []
-            sector_counts = {}
-
-            def try_append(candidate):
+            def try_append(candidate: Dict[str, object]) -> bool:
                 sector = candidate.get('sector', 'Unknown')
                 if sector_counts.get(sector, 0) >= self.max_per_sector:
                     return False
@@ -276,36 +291,24 @@ class DailyStockRecommendationCloseV1:
                 try_append(rec)
 
             if len(selected) < top_n:
-                fallback_sorted = sorted(
-                    fallback_candidates,
-                    key=lambda x: x['prediction_probability'],
-                    reverse=True,
-                )
-                for cand in fallback_sorted:
+                for cand in fallback_candidates:
                     if len(selected) >= top_n:
                         break
-                    if cand['passed_threshold']:
+                    if cand.get('passed_threshold'):
                         continue
                     try_append(cand)
 
             if len(selected) < top_n:
-                fallback_sorted = sorted(
-                    fallback_candidates,
-                    key=lambda x: x['prediction_probability'],
-                    reverse=True,
-                )
-                for cand in fallback_sorted:
+                for cand in fallback_candidates:
                     if len(selected) >= top_n:
                         break
                     if any(existing['code'] == cand['code'] for existing in selected):
                         continue
                     selected.append(cand)
 
-            recommendations = selected
-            
-            logger.info(f"✅ 推奨銘柄生成完了: {len(recommendations)}銘柄")
-            return recommendations
-        
+            logger.info(f"✅ 推奨銘柄生成完了: {len(selected)}銘柄")
+            return selected
+
         except Exception as e:
             logger.error(f"推奨銘柄生成エラー: {e}")
             return []

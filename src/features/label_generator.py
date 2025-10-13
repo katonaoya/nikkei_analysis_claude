@@ -4,7 +4,7 @@ Label generation for stock analysis
 
 import pandas as pd
 import numpy as np
-from typing import Optional, Union, Dict, Any, Tuple
+from typing import Optional, Union, Dict, Any, Tuple, Iterable
 from datetime import datetime, date, timedelta
 
 # Import utilities with fallback
@@ -24,16 +24,15 @@ except ImportError:
     def get_logger(name):
         return logging.getLogger(name)
     
+    from contextlib import contextmanager
+
+    @contextmanager
     def with_error_context(context_msg):
-        def decorator(func):
-            def wrapper(*args, **kwargs):
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    logging.error(f"Error in {context_msg}: {e}")
-                    raise
-            return wrapper
-        return decorator
+        try:
+            yield
+        except Exception as e:
+            logging.error(f"Error in {context_msg}: {e}")
+            raise
     
     class DataError(Exception):
         pass
@@ -161,6 +160,116 @@ class LabelGenerator:
             
             return result_df
     
+    def create_downside_labels(
+        self,
+        df: pd.DataFrame,
+        price_col: str = 'Close',
+        down_thresholds: Optional[Union[float, Iterable[float]]] = None,
+        horizon_days: int = 1,
+        group_by: Optional[str] = 'Code',
+        allow_equal: bool = True
+    ) -> pd.DataFrame:
+        """Create downside risk labels based on future close-to-close returns.
+
+        Args:
+            df: Input DataFrame with price data.
+            price_col: Column name for closing prices.
+            down_thresholds: Threshold(s) expressed as negative returns (e.g. -0.01 for -1%).
+            horizon_days: Number of business days ahead for the comparison.
+            group_by: Column to group by (e.g. 'Code'). If None, operates on whole DataFrame.
+            allow_equal: If True, threshold comparison uses <=, otherwise <.
+
+        Returns:
+            DataFrame with downside probability targets appended.
+        """
+        with with_error_context("creating downside labels"):
+            if df.empty:
+                return df
+
+            validate_positive(horizon_days, "horizon days")
+
+            if down_thresholds is None:
+                down_thresholds = [-0.01]
+
+            if isinstance(down_thresholds, (int, float)):
+                down_threshold_list = [float(down_thresholds)]
+            else:
+                down_threshold_list = [float(th) for th in down_thresholds]
+
+            if not down_threshold_list:
+                raise ValidationError("At least one downside threshold must be provided")
+
+            for threshold in down_threshold_list:
+                if threshold >= 0:
+                    raise ValidationError(
+                        f"Downside thresholds must be negative (received {threshold})"
+                    )
+
+            result_df = df.copy()
+
+            # Ensure deterministic ordering before shift operations
+            sort_columns = [group_by, 'Date'] if group_by and group_by in result_df.columns else ['Date']
+            result_df = result_df.sort_values(sort_columns)
+
+            # Compute future close price for the specified horizon
+            if group_by and group_by in result_df.columns:
+                future_close = result_df.groupby(group_by)[price_col].shift(-horizon_days)
+            else:
+                future_close = result_df[price_col].shift(-horizon_days)
+
+            result_df['Future_Close'] = future_close
+            return_col = f'Return_Close_{horizon_days}d'
+            result_df[return_col] = (
+                result_df['Future_Close'] / result_df[price_col] - 1
+            )
+
+            # Generate downside targets for each threshold
+            tolerance = 1e-6
+            for threshold in down_threshold_list:
+                threshold_pct = abs(threshold) * 100
+                if abs(threshold_pct - round(threshold_pct)) < 1e-9:
+                    threshold_suffix = f"{int(round(threshold_pct))}pct"
+                else:
+                    threshold_suffix = (
+                        f"{threshold_pct:.1f}pct".replace('.', '_')
+                    )
+
+                column_name = f'Target_Downside_{threshold_suffix}'
+                if allow_equal:
+                    mask = result_df[return_col] <= (threshold + tolerance)
+                else:
+                    mask = result_df[return_col] < (threshold - tolerance)
+
+                result_df[column_name] = mask.astype(int)
+
+                positive_rate = result_df[column_name].mean()
+                self.logger.info(
+                    "Created downside label",
+                    extra={
+                        "column": column_name,
+                        "threshold": f"{threshold:.2%}",
+                        "positive_rate": f"{positive_rate:.2%}",
+                        "horizon_days": horizon_days,
+                    },
+                )
+
+            # Remove rows without sufficient forward data
+            if group_by and group_by in result_df.columns:
+                result_df['Is_Last_Horizon'] = (
+                    result_df.groupby(group_by)['Date']
+                    .rank(method='dense', ascending=False)
+                    <= horizon_days
+                )
+                result_df = result_df[~result_df['Is_Last_Horizon']].drop('Is_Last_Horizon', axis=1)
+            else:
+                if horizon_days > 0:
+                    result_df = result_df[:-horizon_days]
+
+            # Clean up helper column
+            result_df = result_df.drop(columns=['Future_Close'])
+
+            return result_df
+
     def create_multi_horizon_labels(
         self,
         df: pd.DataFrame,
@@ -477,7 +586,130 @@ class LabelGenerator:
             )
             
             return result_df
-    
+
+    def create_volatility_risk_features(
+        self,
+        df: pd.DataFrame,
+        price_col: str = 'Close',
+        high_col: str = 'High',
+        low_col: str = 'Low',
+        window: int = 5,
+        group_by: Optional[str] = 'Code',
+        annualization_factor: float = 252.0
+    ) -> pd.DataFrame:
+        """Create volatility and risk oriented features for ancillary risk models.
+
+        Args:
+            df: DataFrame with OHLC data.
+            price_col: Column name used for closing prices.
+            high_col: Column name with daily highs (for ATR calculation).
+            low_col: Column name with daily lows (for ATR calculation).
+            window: Rolling window to estimate volatility / ATR.
+            group_by: Column to group by (e.g. 'Code').
+            annualization_factor: Factor to annualise standard deviation of daily returns.
+
+        Returns:
+            DataFrame enriched with volatility metrics (`Rolling_Volatility`, `ATR`, `Risk_Score`).
+        """
+        with with_error_context("creating volatility risk features"):
+            if df.empty:
+                return df
+
+            validate_positive(window, "window")
+            if annualization_factor <= 0:
+                raise ValidationError("annualization_factor must be positive")
+
+            missing_cols = [col for col in (price_col, high_col, low_col) if col not in df.columns]
+            if missing_cols:
+                raise DataError(f"Missing required columns: {missing_cols}")
+
+            result_df = df.copy()
+
+            sort_columns = [group_by, 'Date'] if group_by and group_by in result_df.columns else ['Date']
+            result_df = result_df.sort_values(sort_columns)
+
+            if group_by and group_by in result_df.columns:
+                returns = result_df.groupby(group_by)[price_col].pct_change()
+                prev_close = result_df.groupby(group_by)[price_col].shift(1)
+            else:
+                returns = result_df[price_col].pct_change()
+                prev_close = result_df[price_col].shift(1)
+
+            result_df['Daily_Return'] = returns
+
+            if group_by and group_by in result_df.columns:
+                rolling_vol = (
+                    result_df.groupby(group_by)['Daily_Return']
+                    .rolling(window=window, min_periods=max(2, window // 2))
+                    .std()
+                    .reset_index(level=0, drop=True)
+                )
+            else:
+                rolling_vol = result_df['Daily_Return'].rolling(
+                    window=window, min_periods=max(2, window // 2)
+                ).std()
+
+            result_df['Rolling_Volatility'] = rolling_vol * np.sqrt(annualization_factor)
+
+            # True range for ATR calculation
+            true_range_components = pd.concat([
+                (result_df[high_col] - result_df[low_col]).abs(),
+                (result_df[high_col] - prev_close).abs(),
+                (result_df[low_col] - prev_close).abs()
+            ], axis=1)
+
+            result_df['True_Range'] = true_range_components.max(axis=1)
+
+            if group_by and group_by in result_df.columns:
+                atr = (
+                    result_df.groupby(group_by)['True_Range']
+                    .rolling(window=window, min_periods=max(2, window // 2))
+                    .mean()
+                    .reset_index(level=0, drop=True)
+                )
+            else:
+                atr = result_df['True_Range'].rolling(
+                    window=window, min_periods=max(2, window // 2)
+                ).mean()
+
+            result_df['ATR'] = atr
+            result_df['ATR_Pct'] = result_df['ATR'] / result_df[price_col]
+
+            # Combine to a single risk score (simple average of normalised metrics)
+            risk_components = pd.concat([
+                result_df['Rolling_Volatility'].fillna(0.0).rename('rolling_vol'),
+                result_df['ATR_Pct'].fillna(0.0).rename('atr_pct')
+            ], axis=1)
+
+            # Normalise each component by its 90th percentile to keep risk score between 0-1-ish
+            normalised_components = []
+            for component_name, col_values in risk_components.items():
+                if col_values.notna().any():
+                    scale = np.nanpercentile(col_values.values, 90)
+                    scale = float(scale) if scale > 0 else 1.0
+                else:
+                    scale = 1.0
+                normalised_components.append((col_values / scale).clip(lower=0).rename(component_name))
+
+            if normalised_components:
+                normalised_df = pd.concat(normalised_components, axis=1)
+                result_df['Risk_Score'] = normalised_df.mean(axis=1)
+            else:
+                result_df['Risk_Score'] = 0.0
+
+            # Clean helper columns
+            result_df = result_df.drop(columns=['True_Range'])
+
+            self.logger.info(
+                "Created volatility risk features",
+                extra={
+                    "window": window,
+                    "annualization_factor": annualization_factor,
+                },
+            )
+
+            return result_df
+
     def validate_labels(
         self,
         df: pd.DataFrame,

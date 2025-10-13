@@ -35,7 +35,7 @@ class DailyTradingAutomation:
         self.start_time = datetime.now()
         self.base_dir = Path(__file__).parent
         self.success_count = 0
-        self.total_steps = 5
+        self.total_steps = 12
         
         # 分析対象日を決定
         self.target_date = JapanMarketCalendar.get_target_date_for_analysis(self.start_time)
@@ -149,6 +149,99 @@ class DailyTradingAutomation:
             timeout=300  # 5分
         )
         results.append(("推奨レポート", success))
+
+        # STEP 6: 下落・リスクモデル推論
+        downside_command = (
+            "python systems/downside_risk_system_v1.py "
+            f"--predict-date {self.target_date.strftime('%Y-%m-%d')}"
+        )
+        success = self.run_command(
+            downside_command,
+            "下落・リスクモデル推論",
+            timeout=600  # 10分
+        )
+        results.append(("下落・リスクモデル推論", success))
+
+        # STEP 7: マルチモデル候補データ更新
+        builder_command = (
+            "python analysis/build_multi_model_candidate_dataset.py "
+            "--lookback-days 20 --max-candidates 150 "
+            "--temp-dir tmp/multi_candidate_builder --no-retrain-first"
+        )
+        success = self.run_command(
+            builder_command,
+            "マルチモデル候補データ生成",
+            timeout=900  # 15分
+        )
+        results.append(("マルチモデル候補データ生成", success))
+
+        # STEP 8: マルチモデル指標ログ更新
+        metrics_command = (
+            "python analysis/log_multi_model_metrics.py "
+            "--input production_data/multi_model_candidates.parquet "
+            "--config config/multi_model_recommendation.json "
+            "--allow-fallback --fallback-max 1 --fallback-min-passed 2 "
+            "--fallback-min-passed-ratio 0.45 "
+            "--fallback-min-composite -0.03 --fallback-min-up-prob 0.17 "
+            "--fallback-risk-margin 0.05 --fallback-block-ratio 0.2 "
+            "--fallback-max-per-sector 1 --days 120 "
+            "--archive-dir production_data/multi_model_metrics_archive "
+            "--keep-months 2"
+        )
+        success = self.run_command(
+            metrics_command,
+            "マルチモデル指標ログ更新",
+            timeout=240  # 4分
+        )
+        results.append(("マルチモデル指標ログ更新", success))
+
+        # STEP 9: 下落モデルキャリブレーション集計
+        calibration_command = (
+            "python analysis/downside_calibration_report.py "
+            "--predictions production_data/downside_predictions.parquet "
+            "--export-csv analysis/downside_calibration_metrics_latest.csv"
+        )
+        success = self.run_command(
+            calibration_command,
+            "下落モデルキャリブレーション集計",
+            timeout=180  # 3分
+        )
+        results.append(("下落モデルキャリブレーション集計", success))
+
+        # STEP 10: マルチモデル統合レポート
+        success = self.run_command(
+            "python reports/daily_stock_recommendation_multi.py",
+            "マルチモデル統合推奨銘柄レポート生成",
+            timeout=360  # 6分
+        )
+        results.append(("マルチモデルレポート", success))
+
+        # STEP 11: フォールバック推移グラフ更新
+        plot_command = (
+            "python analysis/plot_multi_model_fallback_trend.py "
+            "--input production_data/multi_model_metrics.csv "
+            "--output analysis/figures/fallback_precision_latest.png "
+            "--window 7"
+        )
+        success = self.run_command(
+            plot_command,
+            "フォールバック推移グラフ更新",
+            timeout=120  # 2分
+        )
+        results.append(("フォールバック推移グラフ更新", success))
+
+        # STEP 12: 週次サマリ Markdown 出力
+        weekly_command = (
+            "python analysis/weekly_multi_model_summary.py "
+            "--metrics production_data/multi_model_metrics.csv "
+            "--days 14 --output analysis/multi_model_weekly_summary.md"
+        )
+        success = self.run_command(
+            weekly_command,
+            "週次マルチモデル指標サマリ更新",
+            timeout=120  # 2分
+        )
+        results.append(("週次マルチモデル指標サマリ更新", success))
         
         # 実行結果サマリー
         self.show_summary(results)

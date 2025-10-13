@@ -1,0 +1,2 @@
+label_column,count,positive_rate,mean_prob,brier_score,ece,max_gap
+down_target,228.0,0.0,0.5095514519649496,0.25996585999043353,0.5095514519649496,0.5182617561763296

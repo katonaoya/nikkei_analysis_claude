@@ -1,0 +1,57 @@
+{
+  "top_n": 5,
+  "thresholds": {
+    "up": 0.18,
+    "down": 0.52,
+    "risk": 0.4
+  },
+  "weights": {
+    "up": 1.0,
+    "down": 0.5,
+    "risk": 0.4
+  },
+  "upside": {
+    "target_return": 0.01,
+    "imbalance_boost": 1.2,
+    "min_probability": 0.15,
+    "max_per_sector": 2,
+    "config_path": "config/close_recommendation_config.json"
+  },
+  "downside": {
+    "prediction_path": "production_data/downside_predictions.parquet",
+    "prob_column": "prob_down",
+    "date_column": "analysis_date",
+    "code_column": "code",
+    "default_probability": 0.0,
+    "clip": [
+      0.0,
+      1.0
+    ]
+  },
+  "risk": {
+    "prediction_path": "production_data/risk_predictions.parquet",
+    "score_column": "risk_score",
+    "date_column": "analysis_date",
+    "code_column": "code",
+    "default_score": 0.0,
+    "clip": [
+      0.0,
+      null
+    ]
+  },
+  "fallback": {
+    "require_passed_all": true,
+    "max_candidates": 200,
+    "max_fallback": 1,
+    "min_passed_all": 2,
+    "min_passed_ratio": 0.45,
+    "max_per_sector": 1,
+    "min_up_probability": 0.17,
+    "min_composite": -0.03,
+    "risk_margin": 0.05,
+    "block_ratio": 0.2
+  },
+  "output": {
+    "subdir": "multi_model"
+  }
+}
