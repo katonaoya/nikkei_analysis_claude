@@ -1,0 +1,68 @@
+{
+  "threshold": 0.41,
+  "summary": {
+    "total_signals": 9,
+    "signals_with_outcome": 9,
+    "precision": 0.5555555555555556,
+    "avg_return": 0.03070478440943029,
+    "cum_return": 0.2763430596848726
+  },
+  "by_date": [
+    {
+      "Date": "2025-10-02",
+      "signals": 2,
+      "positives": 2,
+      "avg_prob": 0.42856069259239077,
+      "avg_return": 0.03234926444652686,
+      "trades_with_outcome": 2
+    },
+    {
+      "Date": "2025-10-06",
+      "signals": 1,
+      "positives": 0,
+      "avg_prob": 0.4107194873485938,
+      "avg_return": -0.007101476359558934,
+      "trades_with_outcome": 1
+    },
+    {
+      "Date": "2025-10-07",
+      "signals": 2,
+      "positives": 1,
+      "avg_prob": 0.4125642427280507,
+      "avg_return": 0.027073260729188697,
+      "trades_with_outcome": 2
+    },
+    {
+      "Date": "2025-10-10",
+      "signals": 1,
+      "positives": 1,
+      "avg_prob": 0.4168134236808301,
+      "avg_return": 0.13414634146341453,
+      "trades_with_outcome": 1
+    },
+    {
+      "Date": "2025-10-14",
+      "signals": 1,
+      "positives": 1,
+      "avg_prob": 0.4243286614909457,
+      "avg_return": 0.03183023872679036,
+      "trades_with_outcome": 1
+    },
+    {
+      "Date": "2025-10-15",
+      "signals": 1,
+      "positives": 0,
+      "avg_prob": 0.4659714572169522,
+      "avg_return": 0.003822873526600823,
+      "trades_with_outcome": 1
+    },
+    {
+      "Date": "2025-10-16",
+      "signals": 1,
+      "positives": 0,
+      "avg_prob": 0.4240045908474653,
+      "avg_return": -0.006347191367819739,
+      "trades_with_outcome": 1
+    }
+  ]
+}

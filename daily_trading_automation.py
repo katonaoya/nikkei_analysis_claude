@@ -35,7 +35,7 @@ class DailyTradingAutomation:
         self.start_time = datetime.now()
         self.base_dir = Path(__file__).parent
         self.success_count = 0
-        self.total_steps = 5
+        self.total_steps = 6
         
         # 分析対象日を決定
         self.target_date = JapanMarketCalendar.get_target_date_for_analysis(self.start_time)
@@ -126,7 +126,19 @@ class DailyTradingAutomation:
         )
         results.append(("データ取得", success))
 
-        # STEP 3: 外部市場データ統合
+        # STEP 3: 外部特徴量更新（信用残・ニュース）
+        success = self.run_command(
+            "python data_management/update_external_features.py",
+            "外部特徴量更新 (信用残・ニュースRSS)",
+            timeout=420  # 7分
+        )
+        results.append(("外部特徴量更新", success))
+
+        if not success:
+            self.show_summary(results)
+            return
+
+        # STEP 4: 外部市場データ統合
         success = self.run_command(
             "python data_management/enhanced_data_integration.py",
             "外部市場データ統合 (USD/JPY, VIX, S&P500等)",
@@ -134,15 +146,15 @@ class DailyTradingAutomation:
         )
         results.append(("外部データ統合", success))
         
-        # STEP 4: Enhanced V3 AI予測実行
+        # STEP 5: Enhanced V3 AI予測実行
         success = self.run_command(
-            "python systems/enhanced_close_return_system_v1.py",
+            "python systems/enhanced_close_return_system_v1.py --calibration-method none",
             "Close-to-Close V1 AI予測システム実行 (終値→終値)",
             timeout=1200  # 20分
         )
         results.append(("AI予測", success))
 
-        # STEP 5: 日次推奨銘柄レポート生成
+        # STEP 6: 日次推奨銘柄レポート生成
         success = self.run_command(
             "python reports/daily_stock_recommendation_close_v1.py",
             "終値ベース推奨銘柄レポート生成",

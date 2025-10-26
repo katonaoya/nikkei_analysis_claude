@@ -1,0 +1,97 @@
+{
+  "liquidity_q3": {
+    "top3_precision": 0.3915343915343915,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 3,
+    "trained_codes": 228
+  },
+  "liquidity_q4": {
+    "top3_precision": 0.4021164021164021,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 4,
+    "trained_codes": 228
+  },
+  "volatility_q3": {
+    "top3_precision": 0.4021164021164021,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 3,
+    "trained_codes": 228
+  },
+  "volatility_q4": {
+    "top3_precision": 0.3862433862433862,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 4,
+    "trained_codes": 228
+  },
+  "positive_q3": {
+    "top3_precision": 0.4021164021164021,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 3,
+    "trained_codes": 228
+  },
+  "momentum_q3": {
+    "top3_precision": 0.3544973544973545,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 3,
+    "trained_codes": 228
+  },
+  "liquidity3_vol3": {
+    "top3_precision": 0.35978835978835977,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 9,
+    "trained_codes": 228
+  },
+  "liquidity4_vol3": {
+    "top3_precision": 0.3915343915343915,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 12,
+    "trained_codes": 228
+  },
+  "liquidity3_vol4": {
+    "top3_precision": 0.3544973544973545,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 12,
+    "trained_codes": 228
+  },
+  "liq3_vol3_mom3": {
+    "top3_precision": 0.4074074074074074,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 27,
+    "trained_codes": 228
+  },
+  "kmeans_4": {
+    "top3_precision": 0.37566137566137564,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 4,
+    "trained_codes": 228
+  },
+  "kmeans_5": {
+    "top3_precision": 0.35978835978835977,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 5,
+    "trained_codes": 228
+  },
+  "kmeans_6": {
+    "top3_precision": 0.3492063492063492,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 6,
+    "trained_codes": 228
+  },
+  "kmeans_7": {
+    "top3_precision": 0.35978835978835977,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 7,
+    "trained_codes": 228
+  },
+  "kmeans_8": {
+    "top3_precision": 0.30158730158730157,
+    "baseline_precision": 0.291005291005291,
+    "clusters": 8,
+    "trained_codes": 228
+  },
+  "best_scenario": {
+    "name": "liq3_vol3_mom3",
+    "top3_precision": 0.4074074074074074,
+    "baseline_precision": 0.291005291005291
+  }
+}

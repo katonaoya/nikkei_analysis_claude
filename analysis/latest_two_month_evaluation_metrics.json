@@ -1,0 +1,20 @@
+{
+  "start_date": "2025-08-10",
+  "end_date": "2025-10-10",
+  "samples": 9576,
+  "unique_dates": 42,
+  "unique_codes": 228,
+  "positive_rate": 0.242586,
+  "pred_positive_rate_raw": 0.338868,
+  "pred_positive_rate_calibrated": 0.000104,
+  "accuracy_raw": 0.625104,
+  "precision_raw": 0.304777,
+  "recall_raw": 0.425743,
+  "f1_raw": 0.355244,
+  "accuracy_calibrated": 0.757519,
+  "precision_calibrated": 1.0,
+  "recall_calibrated": 0.00043,
+  "f1_calibrated": 0.000861,
+  "roc_auc_raw": 0.583355,
+  "roc_auc_calibrated": 0.583355
+}

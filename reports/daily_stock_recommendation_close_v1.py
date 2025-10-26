@@ -14,6 +14,7 @@ import joblib
 import argparse
 import json
 import sys
+from typing import Dict
 
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.market_calendar import JapanMarketCalendar
@@ -43,6 +44,7 @@ class DailyStockRecommendationCloseV1:
             min_probability = self.config.get("min_probability", 0.60)
         if max_per_sector is None:
             max_per_sector = self.config.get("max_per_sector", 3)
+        self.strict_min_probability = self.config.get("strict_min_probability", False)
 
         # モデルコンポーネント
         self.model = None
@@ -50,6 +52,16 @@ class DailyStockRecommendationCloseV1:
         self.selector = None
         self.feature_names = None
         self.model_accuracy = None
+        self.model_topn_precision = None
+        self.model_avg_selected = None
+        self.cluster_topn_precision = None
+        self.baseline_topn_precision = None
+        self.model_mode = "single"
+        self.ensemble_base_models = {}
+        self.ensemble_meta_model = None
+        self.base_model_names = []
+        self.cluster_meta_models: Dict[str, Dict[str, object]] = {}
+        self.code_cluster_map: Dict[str, str] = {}
         self.pipeline = CloseReturnPrecisionSystemV1(target_return=target_return, imbalance_boost=imbalance_boost)
         
         # 会社名マッピング
@@ -65,6 +77,8 @@ class DailyStockRecommendationCloseV1:
         self.imbalance_boost = imbalance_boost
         self.min_probability = min_probability
         self.max_per_sector = max_per_sector
+        self.last_candidates = []
+        self.last_generation_stats = {}
 
     def _load_config(self, path: str) -> dict:
         cfg_path = Path(path)
@@ -100,10 +114,122 @@ class DailyStockRecommendationCloseV1:
     def _get_company_name(self, code):
         """銘柄コードから会社名を取得"""
         return self.company_names.get(str(code), f"銘柄{code}")
+
+    def _align_feature_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        missing = [col for col in self.feature_names if col not in df.columns]
+        if missing:
+            for col in missing:
+                df[col] = 0.0
+            logger.debug("欠損特徴量 %s を0で補完", ", ".join(missing))
+        return df
+
+    @staticmethod
+    def _predict_model_proba(model, features: np.ndarray) -> np.ndarray:
+        if hasattr(model, 'predict_proba'):
+            proba = model.predict_proba(features)
+            if isinstance(proba, tuple):
+                proba = proba[0]
+            return proba[:, 1]
+        if hasattr(model, 'decision_function'):
+            decision = model.decision_function(features)
+            return 1.0 / (1.0 + np.exp(-decision))
+        preds = model.predict(features)
+        return preds.astype(float)
+
+    def _predict_probabilities(self, feature_df: pd.DataFrame) -> np.ndarray:
+        aligned_df = self._align_feature_columns(feature_df.copy())
+        matrix = aligned_df[self.feature_names].values.astype(np.float32)
+
+        if self.model_mode == "ensemble" and self.ensemble_base_models and self.ensemble_meta_model:
+            base_outputs = []
+            for name in self.base_model_names:
+                model = self.ensemble_base_models.get(name)
+                if model is None:
+                    continue
+                base_outputs.append(self._predict_model_proba(model, matrix))
+            if not base_outputs:
+                raise ValueError("アンサンブル用のベースモデル出力が得られませんでした")
+            stacked = np.column_stack(base_outputs)
+            ensemble_scores = self.ensemble_meta_model.predict_proba(stacked)[:, 1]
+            if self.calibration is not None:
+                ensemble_scores = self.calibration.predict(ensemble_scores)
+
+            if self.cluster_meta_models and self.code_cluster_map:
+                codes = feature_df.get('Code')
+                if codes is None:
+                    codes = feature_df.get('Stock')
+                if codes is not None:
+                    codes = codes.astype(str).tolist()
+                    adjusted = ensemble_scores.copy()
+                    for idx, code in enumerate(codes):
+                        cluster = self.code_cluster_map.get(code)
+                        if not cluster:
+                            continue
+                        info = self.cluster_meta_models.get(cluster)
+                        if not info:
+                            continue
+                        model = info.get('model')
+                        if model is None:
+                            continue
+                        prob = model.predict_proba(stacked[idx:idx+1])[:, 1]
+                        calibrator = info.get('calibrator')
+                        if calibrator is not None:
+                            prob = calibrator.predict(prob)
+                        adjusted[idx] = prob[0]
+                    return adjusted
+
+            return ensemble_scores
+
+        features = matrix
+        if self.selector is not None:
+            features = self.selector.transform(features)
+        if self.scaler is not None:
+            features = self.scaler.transform(features)
+        proba = self.model.predict_proba(features)[:, 1]
+        return CloseReturnPrecisionSystemV1.apply_calibration(proba, self.calibration)
     
     def _load_close_model(self):
         """終値ベースモデルを読み込み"""
         try:
+            ensemble_path = Path("models/ensemble_close_v2/latest_ensemble_model.joblib")
+            if ensemble_path.exists():
+                try:
+                    ensemble_data = joblib.load(ensemble_path)
+                    base_models = ensemble_data.get('base_models', {})
+                    meta_model = ensemble_data.get('meta_model')
+                    feature_cols = ensemble_data.get('feature_cols', [])
+
+                    if base_models and meta_model and feature_cols:
+                        self.model_mode = "ensemble"
+                        self.ensemble_base_models = base_models
+                        self.ensemble_meta_model = meta_model
+                        self.base_model_names = list(base_models.keys())
+                        self.feature_names = feature_cols
+                        holdout_metrics = (
+                            ensemble_data.get('holdout_metrics', {})
+                            if isinstance(ensemble_data, dict)
+                            else {}
+                        )
+                        ensemble_holdout = holdout_metrics.get('ensemble', {}) if isinstance(holdout_metrics, dict) else {}
+                        self.model_accuracy = ensemble_holdout.get('ensemble_accuracy')
+                        top_n = ensemble_data.get('top_n', 3)
+                        self.model_topn_precision = ensemble_holdout.get(f'ensemble_top{top_n}_precision')
+                        self.model_avg_selected = ensemble_holdout.get(f'ensemble_top{top_n}_avg_selected')
+                        self.calibration = ensemble_data.get('calibrator')
+                        self.cluster_meta_models = ensemble_data.get('cluster_meta_models', {})
+                        self.code_cluster_map = ensemble_data.get('code_cluster_map', {})
+                        self.cluster_topn_precision = ensemble_data.get('cluster_holdout_top3_precision')
+                        self.baseline_topn_precision = ensemble_data.get('baseline_holdout_top3_precision')
+                        self.model = None
+                        self.scaler = None
+                        self.selector = None
+                        logger.info("✅ 終値ベースアンサンブルモデル読み込み完了: %s", ensemble_path.name)
+                        logger.info("📊 アンサンブル特徴量数: %d", len(self.feature_names))
+                        return
+                    logger.warning("アンサンブルモデルの構造が不完全なため、従来モデルを使用します")
+                except Exception as exc:
+                    logger.warning("アンサンブルモデル読み込み失敗: %s", exc)
+
             # 終値ベースモデルファイルを探す
             model_files = list(self.model_dir.glob("enhanced_close_v1/*close_model_v1*.joblib"))
             if not model_files:
@@ -165,6 +291,8 @@ class DailyStockRecommendationCloseV1:
     
     def generate_recommendations(self, target_date_str=None, top_n=5):
         """推奨銘柄を生成"""
+        self.last_candidates = []
+        self.last_generation_stats = {}
         try:
             if target_date_str is None:
                 # 営業日ベースで分析対象日を決定
@@ -188,6 +316,9 @@ class DailyStockRecommendationCloseV1:
 
             target_data = target_data.replace([np.inf, -np.inf], np.nan)
             target_data = target_data.ffill().fillna(0)
+
+            probabilities = self._predict_probabilities(target_data)
+            target_data = target_data.assign(prediction_probability=probabilities)
             
             recommendations = []
             fallback_candidates = []
@@ -195,41 +326,7 @@ class DailyStockRecommendationCloseV1:
             for _, row in target_data.iterrows():
                 try:
                     code = row['Code']
-                    
-                    # 終値ベースモデルの特徴量を抽出（欠損列は0で補完）
-                    feature_values = []
-                    missing_cols = []
-                    for col in self.feature_names:
-                        if col in row:
-                            feature_values.append(row[col])
-                        else:
-                            feature_values.append(0.0)
-                            missing_cols.append(col)
-
-                    if missing_cols:
-                        logger.debug(
-                            "銘柄 %s: 欠損特徴量 %s を0で補完",
-                            code,
-                            ", ".join(missing_cols)
-                        )
-
-                    features = pd.DataFrame([feature_values], columns=self.feature_names)
-
-                    # スケーリング
-                    if self.scaler is not None:
-                        features = self.scaler.transform(features)
-
-                    # 特徴量選択
-                    if self.selector is not None:
-                        features = self.selector.transform(features)
-                    
-                    # 予測
-                    prediction_proba = self.model.predict_proba(features)[0][1]
-                    prediction_proba = CloseReturnPrecisionSystemV1.apply_calibration(
-                        prediction_proba,
-                        self.calibration,
-                    )
-
+                    prediction_proba = float(row['prediction_probability'])
                     target_return = float(getattr(self.pipeline, 'target_return', 0.01))
                     candidate = {
                         'code': code,
@@ -284,11 +381,12 @@ class DailyStockRecommendationCloseV1:
                 for cand in fallback_sorted:
                     if len(selected) >= top_n:
                         break
-                    if cand['passed_threshold']:
+                    if self.strict_min_probability and not cand['passed_threshold']:
                         continue
-                    try_append(cand)
+                    if cand['passed_threshold']:
+                        try_append(cand)
 
-            if len(selected) < top_n:
+            if not self.strict_min_probability and len(selected) < top_n:
                 fallback_sorted = sorted(
                     fallback_candidates,
                     key=lambda x: x['prediction_probability'],
@@ -300,6 +398,21 @@ class DailyStockRecommendationCloseV1:
                     if any(existing['code'] == cand['code'] for existing in selected):
                         continue
                     selected.append(cand)
+
+            fallback_sorted = sorted(
+                fallback_candidates,
+                key=lambda x: x['prediction_probability'],
+                reverse=True,
+            )
+            limit = max(top_n, 10)
+            self.last_candidates = fallback_sorted[:limit]
+            self.last_generation_stats = {
+                'threshold': self.min_probability,
+                'top_n': top_n,
+                'total_candidates': len(fallback_candidates),
+                'above_threshold': sum(1 for cand in fallback_candidates if cand['passed_threshold']),
+                'max_probability': fallback_sorted[0]['prediction_probability'] if fallback_sorted else None,
+            }
 
             recommendations = selected
             
@@ -321,7 +434,7 @@ class DailyStockRecommendationCloseV1:
         target_date = pd.to_datetime(target_date_str)
         next_date = JapanMarketCalendar.get_next_market_day(target_date)
         if top_n is None:
-            top_n = self.config.get('top_n', 5)
+            top_n = self.config.get('top_n', 3)
         
         recommendations = self.generate_recommendations(target_date_str, top_n)
         
@@ -330,13 +443,30 @@ class DailyStockRecommendationCloseV1:
         if self.model_accuracy is not None:
             model_accuracy_display = f"{self.model_accuracy * 100:.2f}%"
 
+        model_label = "Close-to-Close Precision Ensemble V2" if self.model_mode == "ensemble" else "Close-to-Close Precision System V1"
+
+        topn_display = "N/A"
+        if self.model_topn_precision is not None:
+            topn_display = f"{self.model_topn_precision * 100:.2f}%"
+        cluster_display = "N/A"
+        if self.cluster_topn_precision is not None:
+            cluster_display = f"{self.cluster_topn_precision * 100:.2f}%"
+        baseline_display = "N/A"
+        if self.baseline_topn_precision is not None:
+            baseline_display = f"{self.baseline_topn_precision * 100:.2f}%"
+
+        topn_display = "N/A"
+        if self.model_topn_precision is not None:
+            topn_display = f"{self.model_topn_precision * 100:.2f}%"
+
         report = f"""📈 日次株価予測レポート（終値ベースモデル対応）
 =====================================
 
 📅 基準日付: {target_date_str}
 📅 推奨取引日: {next_date.strftime('%Y-%m-%d')}
 🏆 推奨銘柄数: {len(recommendations)}銘柄 (TOP {top_n})
-⚙️ モデル精度: {model_accuracy_display} (Close-to-Close Precision System V1)
+⚙️ モデル精度: {model_accuracy_display} ({model_label})
+🎯 Top{top_n} 的中率: {topn_display} / クラスタ調整後 {cluster_display} (従来 {baseline_display})
 📈 判定閾値: {getattr(self.pipeline, 'target_return', 0.01)*100:.1f}% (終値→終値)
 🎯 推奨閾値: 翌営業日終値が+{getattr(self.pipeline, 'target_return', 0.01)*100:.1f}%以上になる確率 {self.min_probability*100:.0f}%以上
 
@@ -347,6 +477,31 @@ class DailyStockRecommendationCloseV1:
         
         if not recommendations:
             report += "\n❌ 推奨条件を満たす銘柄がありませんでした。\n"
+            if self.strict_min_probability and self.last_candidates:
+                stats = self.last_generation_stats or {}
+                report += "\n-------------------------------------\n📊 閾値検証サマリー\n-------------------------------------\n"
+                threshold = stats.get('threshold')
+                if threshold is not None:
+                    report += f"\n- 閾値: {threshold*100:.0f}%"
+                else:
+                    report += "\n- 閾値: N/A"
+                report += f"\n- 評価銘柄数: {stats.get('total_candidates', len(self.last_candidates))}銘柄"
+                report += f"\n- 閾値到達: {stats.get('above_threshold', 0)}銘柄"
+                max_prob = stats.get('max_probability')
+                if max_prob is not None:
+                    report += f"\n- 最高確率: {max_prob*100:.1f}%"
+                report += "\n\n閾値未達の上位候補:\n"
+                limit = max(stats.get('top_n', 5), 10)
+                for idx, cand in enumerate(self.last_candidates, 1):
+                    note = "閾値達成" if cand.get('passed_threshold') else "閾値未達"
+                    report += f"\n{idx}位: {cand['company_name']} ({cand['code']})\n"
+                    report += f"  🎯 予測確率: {cand['prediction_probability']*100:.1f}% ({note})\n"
+                    report += f"  📏 閾値: {self.min_probability*100:.0f}%\n"
+                    report += f"  💰 現在価格: ¥{cand['current_price']:,.0f}\n"
+                    report += f"  📊 出来高: {cand['volume']:,}株\n"
+                    report += f"  🏢 セクター: {cand.get('sector', 'Unknown')}\n"
+                    if idx >= limit:
+                        break
         else:
             for i, rec in enumerate(recommendations, 1):
                 note = ""
@@ -368,7 +523,7 @@ class DailyStockRecommendationCloseV1:
 =====================================
 📊 システム情報
 =====================================
-🤖 使用モデル: Close-to-Close Precision System V1
+🤖 使用モデル: {model_label}
 🕒 判定条件: 前日終値→翌日終値で+{self.pipeline.target_return*100:.1f}%
 🎯 モデル精度: {model_accuracy_display}
 📊 特徴量数: {len(self.feature_names)}個
