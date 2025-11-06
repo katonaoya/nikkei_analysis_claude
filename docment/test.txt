@@ -1,0 +1,1 @@
+'/Users/naoya/Desktop/AI関係自動売買ツール/claude_code_develop/docment/ユーザー情報'の中に、1~10の数字を順番に掛け算して、その結果を出力するpythonファイルを作成して。その後、そのファイルを実行してください。
