@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 V3モデル対応推奨銘柄システム
-78.6%精度のEnhanced Precision System V3に完全対応
+最新学習済みモデルの指標に同期
 """
 
 import pandas as pd
@@ -14,8 +14,10 @@ import joblib
 import argparse
 import json
 import sys
+
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.market_calendar import JapanMarketCalendar
+from systems.enhanced_precision_system_v3 import EnhancedPrecisionSystemV3
 
 # ログ設定
 logging.basicConfig(
@@ -39,6 +41,8 @@ class DailyStockRecommendationV3:
         self.scaler = None
         self.selector = None
         self.feature_names = None
+        self.model_accuracy = None
+        self.pipeline = EnhancedPrecisionSystemV3()
         
         # 会社名マッピング
         self.company_names = {}
@@ -82,75 +86,32 @@ class DailyStockRecommendationV3:
             self.scaler = model_data.get('scaler')
             self.selector = model_data.get('selector')
             self.feature_names = model_data['feature_cols']
-            
+            self.model_accuracy = model_data.get('accuracy')
+
             logger.info(f"✅ V3モデル読み込み完了: {latest_model.name}")
             logger.info(f"📊 特徴量数: {len(self.feature_names)}")
+            if self.model_accuracy is not None:
+                logger.info(f"📈 モデル精度: {self.model_accuracy:.4f}")
             
         except Exception as e:
             logger.error(f"V3モデル読み込みエラー: {e}")
             raise
     
-    def _load_stock_data(self, target_date):
-        """株価データを読み込み"""
+    def _prepare_feature_frame(self, target_date: pd.Timestamp) -> pd.DataFrame:
+        """学習パイプラインと同一ロジックで特徴量を取得"""
         try:
-            # 最新の株価データファイルを探す
-            data_files = list(self.data_dir.glob("processed/nikkei225_complete_*.parquet"))
-            if not data_files:
-                raise FileNotFoundError("株価データが見つかりません")
-            
-            latest_data = max(data_files, key=lambda x: x.stat().st_mtime)
-            df = pd.read_parquet(latest_data)
+            df = self.pipeline.load_and_integrate_data()
             df['Date'] = pd.to_datetime(df['Date'])
-            
-            # 対象日までのデータをフィルタ
             df = df[df['Date'] <= target_date].copy()
-            
-            logger.info(f"✅ 株価データ読み込み完了: {len(df):,}件 (最新: {df['Date'].max().strftime('%Y-%m-%d')})")
+            logger.info(
+                "✅ 特徴量データ読み込み完了: %s件 (最新: %s)",
+                f"{len(df):,}",
+                df['Date'].max().strftime('%Y-%m-%d') if not df.empty else 'N/A'
+            )
             return df
-        
         except Exception as e:
-            logger.error(f"データ読み込みエラー: {e}")
+            logger.error(f"特徴量データ準備エラー: {e}")
             raise
-    
-    def _create_v3_features(self, df):
-        """V3モデルと同じ特徴量を作成"""
-        df = df.copy()
-        df = df.sort_values(['Code', 'Date'])
-        
-        enhanced_df_list = []
-        
-        for code in df['Code'].unique():
-            code_df = df[df['Code'] == code].copy()
-            
-            if len(code_df) < 30:
-                continue
-            
-            # V3モデルの特徴量を正確に再現
-            code_df['Returns'] = code_df['Close'].pct_change(fill_method=None)
-            code_df['MA_5'] = code_df['Close'].rolling(5).mean()
-            code_df['MA_20'] = code_df['Close'].rolling(20).mean()
-            code_df['Volatility'] = code_df['Returns'].rolling(20).std()
-            
-            # RSI
-            delta = code_df['Close'].diff()
-            gain = (delta.where(delta > 0, 0)).rolling(14).mean()
-            loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
-            rs = gain / loss
-            code_df['RSI'] = 100 - (100 / (1 + rs))
-            
-            enhanced_df_list.append(code_df)
-        
-        if not enhanced_df_list:
-            raise ValueError("処理可能な銘柄データがありません")
-        
-        enhanced_df = pd.concat(enhanced_df_list, ignore_index=True)
-        
-        # 無限値・欠損値処理
-        enhanced_df = enhanced_df.replace([np.inf, -np.inf], np.nan)
-        enhanced_df = enhanced_df.fillna(method='ffill').fillna(0)
-        
-        logger.info(f"✅ V3特徴量作成完了: {len(enhanced_df):,}件")
-        return enhanced_df
     
     def generate_recommendations(self, target_date_str=None, top_n=5):
         """推奨銘柄を生成"""
@@ -166,20 +127,17 @@ class DailyStockRecommendationV3:
             
             logger.info(f"🚀 {target_date_str}の推奨銘柄分析開始...")
             
-            # データ読み込み
-            df = self._load_stock_data(target_date)
-            
-            # V3特徴量作成
-            enhanced_df = self._create_v3_features(df)
-            
-            # 対象日のデータを取得
-            target_data = enhanced_df[enhanced_df['Date'] == target_date].copy()
+            feature_df = self._prepare_feature_frame(target_date)
+            target_data = feature_df[feature_df['Date'] == target_date].copy()
             
             if len(target_data) == 0:
                 logger.warning(f"対象日 {target_date_str} のデータが見つかりません")
                 return []
-            
+
             logger.info(f"📊 対象日の銘柄数: {len(target_data)}銘柄")
+
+            target_data = target_data.replace([np.inf, -np.inf], np.nan)
+            target_data = target_data.ffill().fillna(0)
             
             recommendations = []
             
@@ -187,13 +145,29 @@ class DailyStockRecommendationV3:
                 try:
                     code = row['Code']
                     
-                    # V3モデルの特徴量のみを抽出
-                    features = row[self.feature_names].values.reshape(1, -1)
-                    
+                    # V3モデルの特徴量を抽出（欠損列は0で補完）
+                    feature_values = []
+                    missing_cols = []
+                    for col in self.feature_names:
+                        if col in row:
+                            feature_values.append(row[col])
+                        else:
+                            feature_values.append(0.0)
+                            missing_cols.append(col)
+
+                    if missing_cols:
+                        logger.debug(
+                            "銘柄 %s: 欠損特徴量 %s を0で補完",
+                            code,
+                            ", ".join(missing_cols)
+                        )
+
+                    features = pd.DataFrame([feature_values], columns=self.feature_names)
+
                     # スケーリング
                     if self.scaler is not None:
                         features = self.scaler.transform(features)
-                    
+
                     # 特徴量選択
                     if self.selector is not None:
                         features = self.selector.transform(features)
@@ -244,13 +218,17 @@ class DailyStockRecommendationV3:
         recommendations = self.generate_recommendations(target_date_str, top_n)
         
         # レポート生成
+        model_accuracy_display = "N/A"
+        if self.model_accuracy is not None:
+            model_accuracy_display = f"{self.model_accuracy * 100:.2f}%"
+
         report = f"""📈 日次株価予測レポート（V3モデル対応）
 =====================================
 
 📅 基準日付: {target_date_str}
 📅 推奨取引日: {next_date.strftime('%Y-%m-%d')}
 🏆 推奨銘柄数: {len(recommendations)}銘柄 (TOP {top_n})
-⚙️ モデル精度: 78.6% (Enhanced Precision System V3)
+⚙️ モデル精度: {model_accuracy_display} (Enhanced Precision System V3)
 🎯 推奨閾値: 60%以上の予測確信度
 
 =====================================
@@ -277,7 +255,7 @@ class DailyStockRecommendationV3:
 📊 システム情報
 =====================================
 🤖 使用モデル: Enhanced Precision System V3
-🎯 モデル精度: 78.6%
+🎯 モデル精度: {model_accuracy_display}
 📊 特徴量数: {len(self.feature_names)}個
 📅 レポート生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """

@@ -87,7 +87,8 @@ class ProductionBacktestAnalyzer:
             
             for match in matches1:
                 company_name = match[0].strip()
-                code = match[1]
+                raw_code = match[1].strip()
+                code = raw_code if len(raw_code) == 5 else f"{raw_code}0"
                 price = float(match[2].replace(',', ''))
                 probability = float(match[3])
                 
@@ -105,11 +106,12 @@ class ProductionBacktestAnalyzer:
             for match in table_matches:
                 rank = int(match[0])
                 if rank <= 6:  # TOP6まで取得
-                    code = match[1]
+                    raw_code = match[1].strip()
+                    code = raw_code if len(raw_code) == 5 else f"{raw_code}0"
                     company_name = match[2].strip()
                     price = float(match[3].replace(',', ''))
                     probability = float(match[4])
-                    
+
                     # 重複チェック
                     if not any(rec['code'] == code for rec in recommendations):
                         recommendations.append({
@@ -137,15 +139,12 @@ class ProductionBacktestAnalyzer:
         if self.price_data.empty:
             return pd.DataFrame()
         
-        # 4桁コードを5桁に変換（末尾に0を追加）
-        expanded_code = code + '0'
-        
         code_data = self.price_data[
-            (self.price_data['Code'] == expanded_code) & 
+            (self.price_data['Code'] == int(code)) & 
             (self.price_data['Date'] >= start_date) & 
             (self.price_data['Date'] <= end_date)
         ].copy()
-        
+
         return code_data.sort_values('Date')
     
     def simulate_trade(self, code: str, entry_price: float, entry_date: datetime) -> Dict:

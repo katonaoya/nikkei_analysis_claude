@@ -5,14 +5,19 @@ Configuration management utilities
 import os
 import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
-from dotenv import load_dotenv
+from typing import Any, Dict, List, Optional
+from dotenv import dotenv_values
 
 
 class Config:
     """Configuration manager that combines YAML config and environment variables"""
     
-    def __init__(self, config_path: Optional[str] = None, env_path: Optional[str] = None):
+    def __init__(
+        self,
+        config_path: Optional[str] = None,
+        env_path: Optional[str] = None,
+        auto_load_env: bool = False,
+    ):
         """
         Initialize configuration
         
@@ -22,20 +27,21 @@ class Config:
         """
         self.project_root = Path(__file__).parent.parent
         
-        # Load environment variables
-        if env_path:
-            load_dotenv(env_path)
-        else:
-            # Try to load .env from project root
-            env_file = self.project_root / '.env'
-            if env_file.exists():
-                load_dotenv(env_file)
-        
         # Load YAML config
         if config_path is None:
             config_path = self.project_root / 'config' / 'config.yaml'
         
         self.config_data = self._load_yaml_config(config_path)
+
+        # Apply .env style overrides without polluting os.environ
+        if env_path:
+            env_values = dotenv_values(env_path)
+            self._apply_env_mapping(env_values)
+        elif auto_load_env:
+            env_file = self.project_root / '.env'
+            if env_file.exists():
+                env_values = dotenv_values(env_file)
+                self._apply_env_mapping(env_values)
         
         # Override with environment variables
         self._override_with_env_vars()
@@ -106,6 +112,31 @@ class Config:
                     value = float(value)
                 
                 config_section[config_path[-1]] = value
+
+    def _apply_env_mapping(self, env_dict: Dict[str, Any]):
+        """Apply environment-style overrides without permanently mutating os.environ."""
+        if not env_dict:
+            return
+
+        backups: Dict[str, str] = {}
+        created_keys: List[str] = []
+
+        for key, value in env_dict.items():
+            if value is None:
+                continue
+            if key in os.environ:
+                backups[key] = os.environ[key]
+            else:
+                created_keys.append(key)
+            os.environ[key] = str(value)
+
+        try:
+            self._override_with_env_vars()
+        finally:
+            for key in created_keys:
+                os.environ.pop(key, None)
+            for key, value in backups.items():
+                os.environ[key] = value
     
     def get(self, key_path: str, default: Any = None) -> Any:
         """
@@ -218,7 +249,7 @@ def get_config(config_path: Optional[str] = None, env_path: Optional[str] = None
     global _config_instance
     
     if _config_instance is None:
-        _config_instance = Config(config_path, env_path)
+        _config_instance = Config(config_path, env_path, auto_load_env=True)
     
     return _config_instance
 
@@ -235,5 +266,5 @@ def reload_config(config_path: Optional[str] = None, env_path: Optional[str] = N
         New Config instance
     """
     global _config_instance
-    _config_instance = Config(config_path, env_path)
+    _config_instance = Config(config_path, env_path, auto_load_env=True)
     return _config_instance

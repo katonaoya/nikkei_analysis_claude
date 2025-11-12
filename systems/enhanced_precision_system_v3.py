@@ -141,28 +141,43 @@ class EnhancedPrecisionSystemV3:
         # 日付型統一
         stock_df['Date'] = pd.to_datetime(stock_df['Date']).dt.tz_localize(None)
         
-        # 外部データ統合を一時的に無効化（78.5%精度時の状態に復元）
-        if external_df is not None and len(external_df) < 10000:  # 小さいファイルのみ統合
+        # 外部データ統合（サイズに関わらず重要指標のみを取り込む）
+        if external_df is not None:
             try:
                 external_df['Date'] = pd.to_datetime(external_df['Date']).dt.tz_localize(None)
                 
-                # 重要な外部指標のみ選択（複雑性を抑制）
-                important_external_cols = ['Date']
-                for col in external_df.columns:
-                    if any(key in col.lower() for key in ['usdjpy', 'vix', 'nikkei225_close', 'sp500_close']):
-                        important_external_cols.append(col)
-                
-                if len(important_external_cols) > 1:
-                    external_selected = external_df[important_external_cols].copy()
-                    stock_df = pd.merge(stock_df, external_selected, on='Date', how='left')
-                    logger.info(f"外部データ統合完了: {len(important_external_cols)-1}指標")
-                else:
-                    logger.info("外部データが大きすぎるためスキップ（株価データのみ使用）")
-                    
+                # 重要指標キーワードにマッチする列を優先的に選択
+                keyword_candidates = ['usdjpy', 'vix', 'nikkei', 'sp500', 'topix', 'dow', 'nasdaq', 'commodity', 'yield']
+                selected_cols = [
+                    col for col in external_df.columns
+                    if any(key in col.lower() for key in keyword_candidates)
+                ]
+
+                # フォールバック: 数値列のうち最多非欠損トップ N を採用
+                if not selected_cols:
+                    numeric_cols = external_df.select_dtypes(include=[np.number]).columns.tolist()
+                    non_null_counts = external_df[numeric_cols].count().sort_values(ascending=False)
+                    selected_cols = non_null_counts.head(25).index.tolist()
+
+                # 統合する列数を上限化して学習負荷を抑える
+                max_external_features = 30
+                if len(selected_cols) > max_external_features:
+                    selected_cols = selected_cols[:max_external_features]
+
+                external_selected = external_df[['Date'] + selected_cols].copy()
+
+                # 重複日付が存在する場合は最終行を採用
+                if external_selected['Date'].duplicated().any():
+                    external_selected = external_selected.sort_values('Date')
+                    external_selected = external_selected.groupby('Date').tail(1)
+
+                stock_df = pd.merge(stock_df, external_selected, on='Date', how='left')
+                logger.info(f"外部データ統合完了: {len(selected_cols)}指標")
+
             except Exception as e:
                 logger.warning(f"外部データ統合エラー: {e}")
         else:
-            logger.info("外部データ統合をスキップ（株価データのみ使用 - 78.5%精度モード）")
+            logger.info("外部データ統合をスキップ（外部データ未検出）")
         
         logger.info(f"統合後データ: {len(stock_df):,}件, {len(stock_df.columns)}カラム")
         return stock_df
@@ -251,19 +266,16 @@ class EnhancedPrecisionSystemV3:
         """ウォークフォワード最適化（メモリ最適化版）"""
         logger.info("📈 ウォークフォワード最適化開始...")
         
-        # メモリ使用量削減: データサンプリング
-        if len(df) > 200000:  # 20万件以上の場合はサンプリング
-            df_sampled = df.sample(n=200000, random_state=42).copy()
-            logger.info(f"データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
-        else:
-            df_sampled = df.copy()
+        # 全量データで検証（再現性と陽性サンプルを最大限活用）
+        df_sampled = df.copy()
+        logger.info(f"ウォークフォワード入力データ: {len(df_sampled):,}件（全量使用）")
         
         # 日付でソート
         df_sorted = df_sampled.sort_values(['Date', 'Code']).copy()
         unique_dates = sorted(df_sorted['Date'].unique())
         
         results = []
-        step_size = 42  # 2ヶ月リバランス（計算量削減）
+        step_size = 21  # 約1ヶ月リバランスで期間解像度を向上
         
         # 特徴量カラム選択（重要な特徴量のみ）
         feature_cols = [col for col in df_sorted.columns 
@@ -278,6 +290,7 @@ class EnhancedPrecisionSystemV3:
             feature_cols = top_features
         
         logger.info(f"使用特徴量数: {len(feature_cols)}")
+        logger.info(f"評価ステップ幅: {step_size}営業日ごと")
         
         # 初期サイズを小さく設定
         initial_train_size = min(initial_train_size, len(unique_dates) // 3)
@@ -320,6 +333,13 @@ class EnhancedPrecisionSystemV3:
                 X_test_scaled = scaler.transform(X_test_selected)
                 
                 # モデル学習（パラメータ軽量化）
+                pos_count = y_train.sum()
+                neg_count = len(y_train) - pos_count
+                if pos_count == 0:
+                    scale_pos_weight = 1.0
+                else:
+                    scale_pos_weight = neg_count / max(pos_count, 1)
+
                 model = lgb.LGBMClassifier(
                     objective='binary',
                     n_estimators=300,  # 復元
@@ -330,7 +350,8 @@ class EnhancedPrecisionSystemV3:
                     reg_alpha=0.1,
                     reg_lambda=0.1,
                     random_state=42,
-                    verbose=-1
+                    verbose=-1,
+                    scale_pos_weight=scale_pos_weight
                 )
                 
                 model.fit(X_train_scaled, y_train)
@@ -369,12 +390,9 @@ class EnhancedPrecisionSystemV3:
         """最終モデル学習（メモリ最適化版）"""
         logger.info("🤖 最終モデル学習開始...")
         
-        # メモリ使用量削減
-        if len(df) > 100000:
-            df_sampled = df.sample(n=100000, random_state=42).copy()
-            logger.info(f"最終学習データサンプリング: {len(df):,}件 → {len(df_sampled):,}件")
-        else:
-            df_sampled = df.copy()
+        # 全量データを使用（サンプリングを廃止）
+        df_sampled = df.copy()
+        logger.info(f"最終学習データ件数: {len(df_sampled):,}件（全量使用）")
         
         # 特徴量準備
         feature_cols = [col for col in df_sampled.columns 
@@ -409,6 +427,13 @@ class EnhancedPrecisionSystemV3:
         X_test_scaled = scaler.transform(X_test_selected)
         
         # モデル学習（78.5%精度時のパラメータに復元）
+        pos_count = y_train.sum()
+        neg_count = len(y_train) - pos_count
+        if pos_count == 0:
+            scale_pos_weight = 1.0
+        else:
+            scale_pos_weight = neg_count / max(pos_count, 1)
+
         model = lgb.LGBMClassifier(
             objective='binary',
             n_estimators=300,  # 復元
@@ -419,9 +444,12 @@ class EnhancedPrecisionSystemV3:
             reg_alpha=0.1,
             reg_lambda=0.1,
             random_state=42,
-            verbose=-1
+            verbose=-1,
+            scale_pos_weight=scale_pos_weight
         )
         
+        logger.info(f"クラス重み (scale_pos_weight): {scale_pos_weight:.2f}")
+
         model.fit(X_train_scaled, y_train)
         
         # 予測・評価

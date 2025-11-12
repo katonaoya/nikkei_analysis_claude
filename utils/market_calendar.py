@@ -5,9 +5,14 @@
 日本の祝日と市場休場日を考慮した営業日判定機能
 """
 
-import pandas as pd
 from datetime import datetime, timedelta
-import numpy as np
+
+import pandas as pd
+
+try:
+    import jpholiday  # type: ignore
+except ImportError:  # pragma: no cover
+    jpholiday = None
 
 class JapanMarketCalendar:
     """日本株式市場カレンダー"""
@@ -39,27 +44,40 @@ class JapanMarketCalendar:
         '2025-12-31',  # 大晦日（市場休場）
     ]
     
+    # 手動休場日を登録する場合はこちらに追加（'YYYY-MM-DD': '理由'）
+    MANUAL_CLOSED_DATES = {}
+
     @classmethod
     def is_market_open(cls, date):
         """指定日が市場開場日かどうか判定"""
         if isinstance(date, str):
             date = pd.to_datetime(date)
-        
+
+        date = pd.Timestamp(date).floor('D')
+
         # 週末チェック
-        if date.weekday() >= 5:  # 土曜(5)または日曜(6)
+        if date.weekday() >= 5:
             return False
-        
-        # 祝日チェック
+
         date_str = date.strftime('%Y-%m-%d')
+
+        # jpholiday が利用可能ならライブラリ判定を優先
+        if jpholiday is not None and jpholiday.is_holiday(date.to_pydatetime()):
+            return False
+
+        # 手動登録された休場日
+        if date_str in cls.MANUAL_CLOSED_DATES:
+            return False
+
+        # フォールバック: ハードコード祝日 + 年末年始
         if date_str in cls.JAPAN_HOLIDAYS_2025:
             return False
-        
-        # 年末年始特別休場（12/31-1/3）
+
         if date.month == 12 and date.day >= 31:
             return False
         if date.month == 1 and date.day <= 3:
             return False
-        
+
         return True
     
     @classmethod
