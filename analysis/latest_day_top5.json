@@ -1,0 +1,57 @@
+[
+  {
+    "rank": 1,
+    "code": 74530,
+    "name": "\uff08\u682a\uff09\u826f\u54c1\u8a08\u753b",
+    "close": 2788.0,
+    "target": 2815.88,
+    "stop": 2760.12,
+    "prob": 0.4168134236808301,
+    "threshold_hit": true,
+    "volume": 19839000.0
+  },
+  {
+    "rank": 2,
+    "code": 72050,
+    "name": "\u65e5\u91ce\u81ea\u52d5\u8eca\uff08\u682a\uff09",
+    "close": 373.6,
+    "target": 377.336,
+    "stop": 369.86400000000003,
+    "prob": 0.3973968794026013,
+    "threshold_hit": false,
+    "volume": 5042100.0
+  },
+  {
+    "rank": 3,
+    "code": 77310,
+    "name": "\uff08\u682a\uff09\u30cb\u30b3\u30f3",
+    "close": 1818.0,
+    "target": 1836.18,
+    "stop": 1799.82,
+    "prob": 0.3970252996641511,
+    "threshold_hit": false,
+    "volume": 1901900.0
+  },
+  {
+    "rank": 4,
+    "code": 72010,
+    "name": "\u65e5\u7523\u81ea\u52d5\u8eca\uff08\u682a\uff09",
+    "close": 358.1,
+    "target": 361.68100000000004,
+    "stop": 354.519,
+    "prob": 0.39471587386969853,
+    "threshold_hit": false,
+    "volume": 25345800.0
+  },
+  {
+    "rank": 5,
+    "code": 70120,
+    "name": "\u5ddd\u5d0e\u91cd\u5de5\u696d\uff08\u682a\uff09",
+    "close": 9723.0,
+    "target": 9820.23,
+    "stop": 9625.77,
+    "prob": 0.3941960171711888,
+    "threshold_hit": false,
+    "volume": 5367800.0
+  }
+]

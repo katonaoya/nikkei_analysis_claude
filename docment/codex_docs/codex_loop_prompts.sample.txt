@@ -1,0 +1,4 @@
+# codex_loop 用サンプル。1行につき1プロンプトを codex CLI に渡します。
+# コメント行 (#) と空行は `codex_loop.py` で自動的にスキップされます。
+# 例: prompt.md のような Codex CLI 互換のファイルパス、もしくはインラインテキストを記述してください。
+docment/codex_docs/prompt.md

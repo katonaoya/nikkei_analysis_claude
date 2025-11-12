@@ -1,0 +1,8 @@
+{
+  "generated_at": "2025-10-27 00:48:32",
+  "scenario": "liq3_vol3_mom3",
+  "top_n": 3,
+  "baseline_top3_precision": 0.291005291005291,
+  "cluster_top3_precision": 0.4074074074074074,
+  "clusters": 27
+}

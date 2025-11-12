@@ -1,0 +1,15 @@
+# Sample cron entry for codex_loop.sh
+# Copy to your crontab with `crontab codex_loop.cron.sample` after adjusting paths.
+
+SHELL=/bin/zsh
+PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin
+REPO_ROOT=/path/to/claude_code_develop
+
+# Run codex_loop nightly at 23:30 JST
+30 23 * * * cd "$REPO_ROOT" && \
+  RUN_LABEL="nightly" \
+  EXTRA_ARGS="--approvals full --max-output 2" \
+  /bin/zsh "$REPO_ROOT"/scripts/codex_loop.sh \
+    -p docment/codex_docs/codex_loop_prompts.sample.txt \
+    -o results/codex_cli_runs \
+    -l logs/codex_loop >> logs/codex_loop/cron_stdout.log 2>&1

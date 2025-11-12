@@ -1,0 +1,35 @@
+{
+  "generated_at": "2025-10-26 23:25:41",
+  "top_n": 3,
+  "universe_days": 86,
+  "sector_candidates": [
+    {
+      "Grouping": "volatility",
+      "GroupLabel": "Active",
+      "Observations": 6708,
+      "PositiveRatio": 0.30963029218843174,
+      "Top3Hits": 43,
+      "Top3Selected": 144,
+      "Top3Precision": 0.2986111111111111
+    },
+    {
+      "Grouping": "volatility",
+      "GroupLabel": "Calm",
+      "Observations": 6450,
+      "PositiveRatio": 0.2158139534883721,
+      "Top3Hits": 16,
+      "Top3Selected": 62,
+      "Top3Precision": 0.25806451612903225
+    },
+    {
+      "Grouping": "volatility",
+      "GroupLabel": "Neutral",
+      "Observations": 6450,
+      "PositiveRatio": 0.26325581395348835,
+      "Top3Hits": 17,
+      "Top3Selected": 52,
+      "Top3Precision": 0.3269230769230769
+    }
+  ],
+  "artifact_path": "models/ensemble_close_v2/latest_ensemble_model.joblib"
+}

@@ -1,0 +1,28 @@
+# Sample cron entry for running codex_loop + watchdog in one job.
+# Copy to your crontab with `crontab codex_loop_with_watchdog.cron.sample`
+# after customizing REPO_ROOT and thresholds.
+
+SHELL=/bin/zsh
+PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin
+REPO_ROOT=/path/to/claude_code_develop
+
+# Run codex_loop at 23:30 and immediately verify coverage.
+# Watchdog excludes backfilled runs to keep alerts scoped to fresh executions.
+30 23 * * * cd "$REPO_ROOT" && \
+  RUN_LABEL="nightly" \
+  EXTRA_ARGS="--approvals full --max-output 2" \
+  /bin/zsh "$REPO_ROOT"/scripts/codex_loop_watchdog_runner.sh \
+    -p docment/codex_docs/codex_loop_prompts.sample.txt \
+    -o results/codex_cli_runs \
+    -l logs/codex_loop \
+    -H logs/codex_loop/run_history.jsonl \
+    -f \
+    -- \
+    -L nightly \
+    -a 6 \
+    -m 1 \
+    -p 3 \
+    -u 3 \
+    -B exclude \
+    -F \
+    -R >> logs/codex_loop/nightly_combo.log 2>&1

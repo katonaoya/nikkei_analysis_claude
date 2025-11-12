@@ -1,0 +1,13 @@
+{
+  "period": [
+    "2025-10-01",
+    "2025-10-15"
+  ],
+  "summary": {
+    "total_trades": 30,
+    "completed_trades": 30,
+    "avg_return": 0.01635637580239429,
+    "cum_return": 0.5906734566313632,
+    "precision": 0.4666666666666667
+  }
+}

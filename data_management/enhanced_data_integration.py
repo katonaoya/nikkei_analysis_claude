@@ -6,6 +6,7 @@
 60%精度達成を目指す
 """
 
+import argparse
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -18,12 +19,20 @@ from jquants_auth import JQuantsAuth
 from jquants_fundamental import JQuantsFundamental
 from yahoo_market_data import YahooMarketData
 
+from credit_balance_fetcher import load_latest_feature_file
+from news_headline_fetcher import load_latest_news_feature
+from highfreq_market_feature_builder import load_latest_highfreq_feature
+
 class EnhancedDataIntegration:
     """拡張データ統合クラス"""
     
-    def __init__(self):
+    def __init__(self, include_highfreq: bool = True):
         self.base_data_file = "data/processed/integrated_with_external.parquet"
         self.output_file = "data/processed/enhanced_integrated_data.parquet"
+        self.margin_feature_dir = Path("data/external/margin_balances")
+        self.news_feature_dir = Path("data/external/news_headlines")
+        self.highfreq_feature_dir = Path("data/external/highfreq_market")
+        self.include_highfreq = include_highfreq
         
     def load_base_data(self) -> pd.DataFrame:
         """既存のベースデータ読み込み"""
@@ -37,7 +46,63 @@ class EnhancedDataIntegration:
                     df['Date'] = pd.to_datetime(df['date'])
                 if 'code' in df.columns and 'Stock' not in df.columns:
                     df['Stock'] = df['code'].astype(str)
-                
+                if 'Code' not in df.columns:
+                    if 'code' in df.columns:
+                        df['Code'] = df['code'].astype(str)
+                    elif 'Stock' in df.columns:
+                        df['Code'] = df['Stock'].astype(str)
+                if 'Stock' not in df.columns and 'Code' in df.columns:
+                    df['Stock'] = df['Code'].astype(str)
+
+                # 既存モデル互換用の列を補完
+                if 'TurnoverValue' not in df.columns and 'turnover_value' in df.columns:
+                    df['TurnoverValue'] = df['turnover_value']
+                if 'AdjustmentFactor' not in df.columns and 'adjustment_factor' in df.columns:
+                    df['AdjustmentFactor'] = df['adjustment_factor']
+                for src, dst in [
+                    ('adj_open', 'AdjustmentOpen'),
+                    ('adj_high', 'AdjustmentHigh'),
+                    ('adj_low', 'AdjustmentLow'),
+                    ('adj_close', 'AdjustmentClose'),
+                    ('adj_volume', 'AdjustmentVolume'),
+                ]:
+                    if dst not in df.columns and src in df.columns:
+                        df[dst] = df[src]
+                for src, dst in [
+                    ('close', 'Close_raw'),
+                    ('high', 'High_raw'),
+                    ('low', 'Low_raw'),
+                    ('volume', 'Volume_raw'),
+                ]:
+                    if dst not in df.columns and src in df.columns:
+                        df[dst] = df[src]
+                if 'ApiCode' not in df.columns and 'Code' in df.columns:
+                    df['ApiCode'] = df['Code']
+
+                if not self.include_highfreq:
+                    hf_cols = [col for col in df.columns if col.startswith('hf_')]
+                    if hf_cols:
+                        df = df.drop(columns=hf_cols)
+                        logger.info(f"ベースデータから高頻度指標を除外: {len(hf_cols)}列")
+
+                if 'Returns' not in df.columns and 'close' in df.columns:
+                    df['Returns'] = df.groupby('Stock')['close'].pct_change()
+                if 'Close_gap_prev' not in df.columns and 'Close' in df.columns:
+                    df['Close_gap_prev'] = df.groupby('Stock')['Close'].pct_change()
+                if 'Returns_3d' not in df.columns and 'close' in df.columns:
+                    df['Returns_3d'] = df.groupby('Stock')['close'].pct_change(periods=3)
+                if 'Volatility_5' not in df.columns and 'Returns' in df.columns:
+                    df['Volatility_5'] = df.groupby('Stock')['Returns'].transform(lambda s: s.rolling(5, min_periods=1).std())
+                if 'High_Low_Ratio' not in df.columns and {'high', 'low'} <= set(df.columns):
+                    df['High_Low_Ratio'] = (df['high'] - df['low']) / df['low'].replace(0, pd.NA)
+                if 'TargetReturn' not in df.columns and 'close' in df.columns:
+                    df['TargetReturn'] = df.groupby('Stock')['close'].shift(-1) / df['close'] - 1
+                if 'MACD' not in df.columns and 'close' in df.columns:
+                    close_series = df.sort_values(['Stock', 'Date']).groupby('Stock')['close']
+                    ema12 = close_series.transform(lambda s: s.ewm(span=12, adjust=False).mean())
+                    ema26 = close_series.transform(lambda s: s.ewm(span=26, adjust=False).mean())
+                    df['MACD'] = ema12 - ema26
+
                 return df
             else:
                 logger.error(f"ベースデータファイルが見つかりません: {self.base_data_file}")
@@ -137,7 +202,7 @@ class EnhancedDataIntegration:
     def integrate_market_data(self, base_df: pd.DataFrame) -> pd.DataFrame:
         """マーケットデータを統合"""
         logger.info("🔄 マーケットデータ統合開始...")
-        
+
         try:
             # Yahoo Financeからマーケットデータ取得
             market_data = YahooMarketData()
@@ -176,7 +241,90 @@ class EnhancedDataIntegration:
         except Exception as e:
             logger.error(f"❌ マーケットデータ統合失敗: {e}")
             return base_df
-    
+
+    def integrate_margin_features(self, base_df: pd.DataFrame) -> pd.DataFrame:
+        """信用取引残データを統合"""
+
+        margin_file = load_latest_feature_file(self.margin_feature_dir)
+        if margin_file is None:
+            logger.warning("信用残特徴量ファイルが見つかりません。統合をスキップします。")
+            return base_df
+
+        try:
+            margin_df = pd.read_parquet(margin_file)
+        except Exception as e:
+            logger.error(f"信用残データ読み込み失敗: {e}")
+            return base_df
+
+        required_cols = {'Code', 'Date'}
+        if not required_cols.issubset(margin_df.columns):
+            logger.error(f"信用残データに必要な列が不足: {required_cols - set(margin_df.columns)}")
+            return base_df
+
+        margin_df['Code'] = margin_df['Code'].astype(str)
+        margin_df['Date'] = pd.to_datetime(margin_df['Date'])
+
+        if 'Code' not in base_df.columns:
+            logger.error("ベースデータにCode列がありません。信用残を統合できません。")
+            return base_df
+
+        merged = base_df.merge(margin_df, on=['Code', 'Date'], how='left')
+
+        margin_cols = [col for col in margin_df.columns if col not in {'Code', 'Date'}]
+        if margin_cols:
+            merged.sort_values(['Code', 'Date'], inplace=True)
+            for code, idx in merged.groupby('Code').groups.items():
+                merged.loc[idx, margin_cols] = merged.loc[idx, margin_cols].fillna(method='ffill')
+
+        logger.success(f"✅ 信用残データ統合完了: {len(margin_cols)}特徴量")
+        return merged
+
+    def integrate_news_features(self, base_df: pd.DataFrame) -> pd.DataFrame:
+        """ニュース関連指標を統合"""
+
+        news_file = load_latest_news_feature(self.news_feature_dir)
+        if news_file is None:
+            logger.warning("ニュース特徴量ファイルが見つかりません。統合をスキップします。")
+            return base_df
+
+        try:
+            news_df = pd.read_parquet(news_file)
+        except Exception as e:
+            logger.error(f"ニュースデータ読み込み失敗: {e}")
+            return base_df
+
+        if 'Date' not in news_df.columns:
+            logger.error("ニュース特徴量にDate列が存在しません")
+            return base_df
+
+        news_df['Date'] = pd.to_datetime(news_df['Date'])
+        merged = base_df.merge(news_df, on='Date', how='left')
+        logger.success(f"✅ ニュースデータ統合完了: {len([c for c in news_df.columns if c != 'Date'])}特徴量")
+        return merged
+
+    def integrate_highfreq_features(self, base_df: pd.DataFrame) -> pd.DataFrame:
+        """高頻度マーケット指標を統合"""
+
+        highfreq_path = load_latest_highfreq_feature(self.highfreq_feature_dir)
+        if highfreq_path is None:
+            logger.warning("高頻度データが見つかりません。統合をスキップします。")
+            return base_df
+
+        try:
+            hf_df = pd.read_parquet(highfreq_path)
+        except Exception as e:
+            logger.error(f"高頻度データ読み込み失敗: {e}")
+            return base_df
+
+        if 'Date' not in hf_df.columns:
+            logger.error("高頻度特徴量にDate列が存在しません")
+            return base_df
+
+        hf_df['Date'] = pd.to_datetime(hf_df['Date'])
+        merged = base_df.merge(hf_df, on='Date', how='left')
+        logger.success(f"✅ 高頻度マーケットデータ統合完了: {len([c for c in hf_df.columns if c != 'Date'])}特徴量")
+        return merged
+
     def create_interaction_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """相互作用特徴量を生成"""
         logger.info("🔧 相互作用特徴量生成中...")
@@ -291,10 +439,25 @@ class EnhancedDataIntegration:
         # 4. マーケットデータ統合
         enhanced_df = self.integrate_market_data(enhanced_df)
         
-        # 5. 相互作用特徴量生成
+        # 5. 信用残データ統合
+        enhanced_df = self.integrate_margin_features(enhanced_df)
+
+        # 6. 高頻度マーケットデータ統合（任意）
+        if self.include_highfreq:
+            enhanced_df = self.integrate_highfreq_features(enhanced_df)
+        else:
+            hf_cols = [col for col in enhanced_df.columns if col.startswith('hf_')]
+            if hf_cols:
+                enhanced_df = enhanced_df.drop(columns=hf_cols)
+                logger.info(f"高頻度指標を除外: {len(hf_cols)}列")
+
+        # 7. ニュース指標統合
+        enhanced_df = self.integrate_news_features(enhanced_df)
+
+        # 8. 相互作用特徴量生成
         enhanced_df = self.create_interaction_features(enhanced_df)
         
-        # 6. 最終調整
+        # 9. 最終調整
         final_df = self.finalize_features(enhanced_df)
         
         if not final_df.empty:
@@ -318,7 +481,11 @@ class EnhancedDataIntegration:
 
 # 実行部分
 if __name__ == "__main__":
-    integrator = EnhancedDataIntegration()
+    cli_parser = argparse.ArgumentParser(description="Enhanced data integration pipeline")
+    cli_parser.add_argument("--skip-highfreq", action="store_true", help="高頻度指標を統合せずに出力する")
+    args = cli_parser.parse_args()
+
+    integrator = EnhancedDataIntegration(include_highfreq=not args.skip_highfreq)
     enhanced_data = integrator.run_integration()
     
     if not enhanced_data.empty:

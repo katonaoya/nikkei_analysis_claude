@@ -2211,153 +2211,411 @@ TypeError: 'PosixPath' object is not subscriptable
 2025-11-04 22:31:25,485 - INFO - 📈 2025-11-05の推奨銘柄レポートを確認してください
 2025-11-04 22:31:25,485 - INFO - 📂 レポート: production_reports/2025-11/2025-11-04.md
 2025-11-04 22:31:25,485 - INFO - ============================================================
-2025-11-05 23:25:16,390 - INFO - ============================================================
-2025-11-05 23:25:16,391 - INFO - 🚀 日次AI株式取引システム 自動実行開始
-2025-11-05 23:25:16,391 - INFO - ⏰ 実行開始時刻: 2025-11-05 23:25:16
-2025-11-05 23:25:16,391 - INFO - 📊 分析対象日: 2025-11-05
-2025-11-05 23:25:16,391 - INFO - 🎯 推奨取引日: 2025-11-06
-2025-11-05 23:25:16,391 - INFO - ============================================================
-2025-11-05 23:25:16,391 - INFO - 🔍 実行環境確認中...
-2025-11-05 23:25:16,391 - INFO - ✅ 実行環境確認完了
-2025-11-05 23:25:16,391 - INFO - 
-📊 STEP 1/5: データヘルスチェック
-2025-11-05 23:25:16,391 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
-2025-11-05 23:25:18,360 - INFO - ✅ データヘルスチェック 完了 (実行時間: 2.0秒)
-2025-11-05 23:25:18,361 - INFO - 📄 実行結果:
-2025-11-05 23:25:18,361 - INFO -    {"text": "2025-11-05T23:25:18.231000+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:01.378886", "seconds": 1.378886}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251104_222141.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 57249, "name": "MainProcess"}, "thread": {"id": 8670671424, "name": "MainThread"}, "time": {"repr": "2025-11-05 23:25:18.231000+09:00", "timestamp": 1762352718.231}}}
-2025-11-05 23:25:18,361 - INFO - 
-📊 STEP 2/5: 日経225全銘柄データ取得 (J-Quants API)
-2025-11-05 23:25:18,361 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
-2025-11-05 23:26:16,034 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 57.7秒)
-2025-11-05 23:26:16,034 - INFO - 📄 実行結果 (最後の5行):
-2025-11-05 23:26:16,035 - INFO -    
-2025-11-05 23:26:16,035 - INFO -    📈 マッチング手法別統計:
-2025-11-05 23:26:16,035 - INFO -                 銘柄数   レコード数
-2025-11-05 23:26:16,035 - INFO -    MatchMethod             
-2025-11-05 23:26:16,035 - INFO -    直接コード一致(5桁)  228  550196
-2025-11-05 23:26:16,035 - INFO - 
-📊 STEP 3/5: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
-2025-11-05 23:26:16,035 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
-2025-11-05 23:26:20,580 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 4.5秒)
-2025-11-05 23:26:20,580 - INFO - 📄 実行結果 (最後の5行):
-2025-11-05 23:26:20,581 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
-2025-11-05 23:26:20,581 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
-2025-11-05 23:26:20,581 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
-2025-11-05 23:26:20,581 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
-2025-11-05 23:26:20,581 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
-2025-11-05 23:26:20,581 - INFO - 
-📊 STEP 4/5: Close-to-Close V1 AI予測システム実行 (終値→終値)
-2025-11-05 23:26:20,581 - INFO - 🔧 実行コマンド: python systems/enhanced_close_return_system_v1.py
-2025-11-05 23:35:12,560 - INFO - ✅ Close-to-Close V1 AI予測システム実行 (終値→終値) 完了 (実行時間: 532.0秒)
-2025-11-05 23:35:12,561 - INFO - 📄 実行結果 (最後の5行):
-2025-11-05 23:35:12,561 - INFO -    📊 最終精度: 0.6230
-2025-11-05 23:35:12,561 - INFO -    📈 ウォークフォワード平均精度: 0.6405
-2025-11-05 23:35:12,561 - INFO -    📁 データ統合: 成功
-2025-11-05 23:35:12,561 - INFO -    📊 データ量: 549,971件
-2025-11-05 23:35:12,561 - INFO -    🔧 特徴量数: 25個
-2025-11-05 23:35:12,561 - INFO - 
-📊 STEP 5/5: 終値ベース推奨銘柄レポート生成
-2025-11-05 23:35:12,561 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_close_v1.py
-2025-11-05 23:35:25,926 - INFO - ✅ 終値ベース推奨銘柄レポート生成 完了 (実行時間: 13.4秒)
-2025-11-05 23:35:25,927 - INFO - 📄 実行結果 (最後の5行):
-2025-11-05 23:35:25,927 - INFO -    🤖 使用モデル: Close-to-Close Precision System V1
-2025-11-05 23:35:25,927 - INFO -    🕒 判定条件: 前日終値→翌日終値で+1.0%
-2025-11-05 23:35:25,927 - INFO -    🎯 モデル精度: 62.30%
-2025-11-05 23:35:25,927 - INFO -    📊 特徴量数: 25個
-2025-11-05 23:35:25,927 - INFO -    📅 レポート生成: 2025-11-05 23:35:25
-2025-11-05 23:35:25,927 - INFO - 
+2025-11-09 00:27:47,718 - INFO - ============================================================
+2025-11-09 00:27:47,719 - INFO - 🚀 日次AI株式取引システム 自動実行開始
+2025-11-09 00:27:47,719 - INFO - ⏰ 実行開始時刻: 2025-11-09 00:27:47
+2025-11-09 00:27:47,719 - INFO - 📊 分析対象日: 2025-11-07
+2025-11-09 00:27:47,719 - INFO - 🎯 推奨取引日: 2025-11-10
+2025-11-09 00:27:47,719 - INFO - ============================================================
+2025-11-09 00:27:47,719 - INFO - 🔍 実行環境確認中...
+2025-11-09 00:27:47,719 - INFO - ✅ 実行環境確認完了
+2025-11-09 00:27:47,719 - INFO - 
+📊 STEP 1/6: データヘルスチェック
+2025-11-09 00:27:47,719 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
+2025-11-09 00:27:49,945 - INFO - ✅ データヘルスチェック 完了 (実行時間: 2.2秒)
+2025-11-09 00:27:49,946 - INFO - 📄 実行結果:
+2025-11-09 00:27:49,946 - INFO -    {"text": "2025-11-09T00:27:49.807366+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:01.597033", "seconds": 1.597033}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251106_214402.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 93442, "name": "MainProcess"}, "thread": {"id": 8594797120, "name": "MainThread"}, "time": {"repr": "2025-11-09 00:27:49.807366+09:00", "timestamp": 1762615669.807366}}}
+2025-11-09 00:27:49,946 - INFO - 
+📊 STEP 2/6: 日経225全銘柄データ取得 (J-Quants API)
+2025-11-09 00:27:49,946 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
+2025-11-09 00:28:47,104 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 57.2秒)
+2025-11-09 00:28:47,104 - INFO - 📄 実行結果 (最後の5行):
+2025-11-09 00:28:47,104 - INFO -    
+2025-11-09 00:28:47,105 - INFO -    📈 マッチング手法別統計:
+2025-11-09 00:28:47,105 - INFO -                 銘柄数   レコード数
+2025-11-09 00:28:47,105 - INFO -    MatchMethod             
+2025-11-09 00:28:47,105 - INFO -    直接コード一致(5桁)  228  549989
+2025-11-09 00:28:47,105 - INFO - 
+📊 STEP 3/6: 外部特徴量更新 (信用残・ニュースRSS)
+2025-11-09 00:28:47,105 - INFO - 🔧 実行コマンド: python data_management/update_external_features.py
+2025-11-09 00:29:16,863 - INFO - ✅ 外部特徴量更新 (信用残・ニュースRSS) 完了 (実行時間: 29.8秒)
+2025-11-09 00:29:16,864 - INFO - 📄 実行結果 (最後の5行):
+2025-11-09 00:29:16,864 - INFO -    1 Failed download:
+2025-11-09 00:29:16,864 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:16,864 - INFO -    
+2025-11-09 00:29:16,864 - INFO -    1 Failed download:
+2025-11-09 00:29:16,864 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:16,864 - INFO - 
+📊 STEP 4/6: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
+2025-11-09 00:29:16,864 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
+2025-11-09 00:29:25,311 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 8.4秒)
+2025-11-09 00:29:25,312 - INFO - 📄 実行結果 (最後の5行):
+2025-11-09 00:29:25,312 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:25,312 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:25,312 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:25,312 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:25,312 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
+2025-11-09 00:29:25,313 - INFO - 
+📊 STEP 5/6: Enhanced Precision V3 AI予測システム実行
+2025-11-09 00:29:25,313 - INFO - 🔧 実行コマンド: python systems/enhanced_precision_system_v3.py
+2025-11-09 00:35:53,134 - INFO - ✅ Enhanced Precision V3 AI予測システム実行 完了 (実行時間: 387.8秒)
+2025-11-09 00:35:53,135 - INFO - 📄 実行結果 (最後の5行):
+2025-11-09 00:35:53,135 - INFO -    📊 最終精度: 0.8114
+2025-11-09 00:35:53,135 - INFO -    📈 ウォークフォワード平均精度: 0.7984
+2025-11-09 00:35:53,135 - INFO -    📁 データ統合: 成功
+2025-11-09 00:35:53,135 - INFO -    📊 データ量: 549,764件
+2025-11-09 00:35:53,135 - INFO -    🔧 特徴量数: 25個
+2025-11-09 00:35:53,135 - INFO - 
+📊 STEP 6/6: V3モデル推奨銘柄レポート生成
+2025-11-09 00:35:53,135 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_v3.py
+2025-11-09 00:35:55,783 - INFO - ✅ V3モデル推奨銘柄レポート生成 完了 (実行時間: 2.6秒)
+2025-11-09 00:35:55,783 - INFO - 📄 実行結果 (最後の5行):
+2025-11-09 00:35:55,783 - INFO -    =====================================
+2025-11-09 00:35:55,783 - INFO -    🤖 使用モデル: Enhanced Precision System V3
+2025-11-09 00:35:55,783 - INFO -    🎯 モデル精度: 81.14%
+2025-11-09 00:35:55,783 - INFO -    📊 特徴量数: 25個
+2025-11-09 00:35:55,783 - INFO -    📅 レポート生成: 2025-11-09 00:35:55
+2025-11-09 00:35:55,783 - INFO - 
 ============================================================
-2025-11-05 23:35:25,927 - INFO - 📊 日次自動実行 完了サマリー
-2025-11-05 23:35:25,927 - INFO - ============================================================
-2025-11-05 23:35:25,927 - INFO - ⏰ 開始時刻: 2025-11-05 23:25:16
-2025-11-05 23:35:25,927 - INFO - ⏰ 終了時刻: 2025-11-05 23:35:25
-2025-11-05 23:35:25,927 - INFO - ⏱️  総実行時間: 0:10:09
-2025-11-05 23:35:25,927 - INFO - 📊 分析対象日: 2025-11-05
-2025-11-05 23:35:25,927 - INFO - 🎯 推奨取引日: 2025-11-06
-2025-11-05 23:35:25,927 - INFO - 
-📋 実行結果: 5/5 成功
-2025-11-05 23:35:25,927 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
-2025-11-05 23:35:25,927 - INFO -    STEP 2: データ取得 - ✅ 成功
-2025-11-05 23:35:25,927 - INFO -    STEP 3: 外部データ統合 - ✅ 成功
-2025-11-05 23:35:25,927 - INFO -    STEP 4: AI予測 - ✅ 成功
-2025-11-05 23:35:25,928 - INFO -    STEP 5: 推奨レポート - ✅ 成功
-2025-11-05 23:35:25,928 - INFO - 
+2025-11-09 00:35:55,783 - INFO - 📊 日次自動実行 完了サマリー
+2025-11-09 00:35:55,783 - INFO - ============================================================
+2025-11-09 00:35:55,783 - INFO - ⏰ 開始時刻: 2025-11-09 00:27:47
+2025-11-09 00:35:55,784 - INFO - ⏰ 終了時刻: 2025-11-09 00:35:55
+2025-11-09 00:35:55,784 - INFO - ⏱️  総実行時間: 0:08:08
+2025-11-09 00:35:55,784 - INFO - 📊 分析対象日: 2025-11-07
+2025-11-09 00:35:55,784 - INFO - 🎯 推奨取引日: 2025-11-10
+2025-11-09 00:35:55,784 - INFO - 
+📋 実行結果: 6/6 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 2: データ取得 - ✅ 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 3: 外部特徴量更新 - ✅ 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 4: 外部データ統合 - ✅ 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 5: AI予測 - ✅ 成功
+2025-11-09 00:35:55,784 - INFO -    STEP 6: 推奨レポート - ✅ 成功
+2025-11-09 00:35:55,784 - INFO - 
 🎉 全ステップが正常に完了しました！
-2025-11-05 23:35:25,928 - INFO - 📈 2025-11-06の推奨銘柄レポートを確認してください
-2025-11-05 23:35:25,928 - INFO - 📂 レポート: production_reports/2025-11/2025-11-05.md
-2025-11-05 23:35:25,928 - INFO - ============================================================
-2025-11-06 21:43:04,621 - INFO - ============================================================
-2025-11-06 21:43:04,621 - INFO - 🚀 日次AI株式取引システム 自動実行開始
-2025-11-06 21:43:04,621 - INFO - ⏰ 実行開始時刻: 2025-11-06 21:43:04
-2025-11-06 21:43:04,621 - INFO - 📊 分析対象日: 2025-11-06
-2025-11-06 21:43:04,621 - INFO - 🎯 推奨取引日: 2025-11-07
-2025-11-06 21:43:04,621 - INFO - ============================================================
-2025-11-06 21:43:04,622 - INFO - 🔍 実行環境確認中...
-2025-11-06 21:43:04,622 - INFO - ✅ 実行環境確認完了
-2025-11-06 21:43:04,622 - INFO - 
-📊 STEP 1/5: データヘルスチェック
-2025-11-06 21:43:04,622 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
-2025-11-06 21:43:06,729 - INFO - ✅ データヘルスチェック 完了 (実行時間: 2.1秒)
-2025-11-06 21:43:06,729 - INFO - 📄 実行結果:
-2025-11-06 21:43:06,729 - INFO -    {"text": "2025-11-06T21:43:06.601614+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:01.507435", "seconds": 1.507435}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251105_232615.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 93616, "name": "MainProcess"}, "thread": {"id": 8607765056, "name": "MainThread"}, "time": {"repr": "2025-11-06 21:43:06.601614+09:00", "timestamp": 1762432986.601614}}}
-2025-11-06 21:43:06,730 - INFO - 
-📊 STEP 2/5: 日経225全銘柄データ取得 (J-Quants API)
-2025-11-06 21:43:06,730 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
-2025-11-06 21:44:02,872 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 56.1秒)
-2025-11-06 21:44:02,872 - INFO - 📄 実行結果 (最後の5行):
-2025-11-06 21:44:02,872 - INFO -    
-2025-11-06 21:44:02,872 - INFO -    📈 マッチング手法別統計:
-2025-11-06 21:44:02,872 - INFO -                 銘柄数   レコード数
-2025-11-06 21:44:02,872 - INFO -    MatchMethod             
-2025-11-06 21:44:02,872 - INFO -    直接コード一致(5桁)  228  550424
-2025-11-06 21:44:02,872 - INFO - 
-📊 STEP 3/5: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
-2025-11-06 21:44:02,873 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
-2025-11-06 21:44:07,562 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 4.7秒)
-2025-11-06 21:44:07,563 - INFO - 📄 実行結果 (最後の5行):
-2025-11-06 21:44:07,563 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
-2025-11-06 21:44:07,563 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
-2025-11-06 21:44:07,563 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
-2025-11-06 21:44:07,563 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
-2025-11-06 21:44:07,563 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
-2025-11-06 21:44:07,563 - INFO - 
-📊 STEP 4/5: Close-to-Close V1 AI予測システム実行 (終値→終値)
-2025-11-06 21:44:07,563 - INFO - 🔧 実行コマンド: python systems/enhanced_close_return_system_v1.py
-2025-11-06 21:52:37,129 - INFO - ✅ Close-to-Close V1 AI予測システム実行 (終値→終値) 完了 (実行時間: 509.6秒)
-2025-11-06 21:52:37,130 - INFO - 📄 実行結果 (最後の5行):
-2025-11-06 21:52:37,130 - INFO -    📊 最終精度: 0.6203
-2025-11-06 21:52:37,130 - INFO -    📈 ウォークフォワード平均精度: 0.6405
-2025-11-06 21:52:37,130 - INFO -    📁 データ統合: 成功
-2025-11-06 21:52:37,130 - INFO -    📊 データ量: 550,199件
-2025-11-06 21:52:37,130 - INFO -    🔧 特徴量数: 25個
-2025-11-06 21:52:37,130 - INFO - 
-📊 STEP 5/5: 終値ベース推奨銘柄レポート生成
-2025-11-06 21:52:37,130 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_close_v1.py
-2025-11-06 21:52:39,669 - INFO - ✅ 終値ベース推奨銘柄レポート生成 完了 (実行時間: 2.5秒)
-2025-11-06 21:52:39,669 - INFO - 📄 実行結果 (最後の5行):
-2025-11-06 21:52:39,669 - INFO -    🤖 使用モデル: Close-to-Close Precision System V1
-2025-11-06 21:52:39,669 - INFO -    🕒 判定条件: 前日終値→翌日終値で+1.0%
-2025-11-06 21:52:39,670 - INFO -    🎯 モデル精度: 62.03%
-2025-11-06 21:52:39,670 - INFO -    📊 特徴量数: 25個
-2025-11-06 21:52:39,670 - INFO -    📅 レポート生成: 2025-11-06 21:52:39
-2025-11-06 21:52:39,670 - INFO - 
+2025-11-09 00:35:55,784 - INFO - 📈 2025-11-10の推奨銘柄レポートを確認してください
+2025-11-09 00:35:55,784 - INFO - 📂 レポート: production_reports/2025-11/2025-11-07.md
+2025-11-09 00:35:55,784 - INFO - ============================================================
+2025-11-10 23:08:02,382 - INFO - ============================================================
+2025-11-10 23:08:02,382 - INFO - 🚀 日次AI株式取引システム 自動実行開始
+2025-11-10 23:08:02,382 - INFO - ⏰ 実行開始時刻: 2025-11-10 23:08:02
+2025-11-10 23:08:02,382 - INFO - 📊 分析対象日: 2025-11-10
+2025-11-10 23:08:02,383 - INFO - 🎯 推奨取引日: 2025-11-11
+2025-11-10 23:08:02,383 - INFO - ============================================================
+2025-11-10 23:08:02,383 - INFO - 🔍 実行環境確認中...
+2025-11-10 23:08:02,383 - INFO - ✅ 実行環境確認完了
+2025-11-10 23:08:02,383 - INFO - 
+📊 STEP 1/7: データヘルスチェック
+2025-11-10 23:08:02,383 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
+2025-11-10 23:08:05,248 - INFO - ✅ データヘルスチェック 完了 (実行時間: 2.9秒)
+2025-11-10 23:08:05,248 - INFO - 📄 実行結果:
+2025-11-10 23:08:05,248 - INFO -    {"text": "2025-11-10T23:08:05.095861+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:02.021665", "seconds": 2.021665}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251109_002846.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 40589, "name": "MainProcess"}, "thread": {"id": 8598635072, "name": "MainThread"}, "time": {"repr": "2025-11-10 23:08:05.095861+09:00", "timestamp": 1762783685.095861}}}
+2025-11-10 23:08:05,249 - INFO - 
+📊 STEP 2/7: 日経225全銘柄データ取得 (J-Quants API)
+2025-11-10 23:08:05,249 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
+2025-11-10 23:09:04,367 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 59.1秒)
+2025-11-10 23:09:04,367 - INFO - 📄 実行結果 (最後の5行):
+2025-11-10 23:09:04,368 - INFO -    
+2025-11-10 23:09:04,368 - INFO -    📈 マッチング手法別統計:
+2025-11-10 23:09:04,368 - INFO -                 銘柄数   レコード数
+2025-11-10 23:09:04,368 - INFO -    MatchMethod             
+2025-11-10 23:09:04,368 - INFO -    直接コード一致(5桁)  228  549996
+2025-11-10 23:09:04,368 - INFO - 
+📊 STEP 3/7: 外部特徴量更新 (信用残・ニュースRSS)
+2025-11-10 23:09:04,368 - INFO - 🔧 実行コマンド: python data_management/update_external_features.py
+2025-11-10 23:09:34,762 - INFO - ✅ 外部特徴量更新 (信用残・ニュースRSS) 完了 (実行時間: 30.4秒)
+2025-11-10 23:09:34,762 - INFO - 📄 実行結果 (最後の5行):
+2025-11-10 23:09:34,762 - INFO -    1 Failed download:
+2025-11-10 23:09:34,762 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:34,762 - INFO -    
+2025-11-10 23:09:34,763 - INFO -    1 Failed download:
+2025-11-10 23:09:34,763 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:34,763 - INFO - 
+📊 STEP 4/7: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
+2025-11-10 23:09:34,763 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
+2025-11-10 23:09:43,285 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 8.5秒)
+2025-11-10 23:09:43,285 - INFO - 📄 実行結果 (最後の5行):
+2025-11-10 23:09:43,286 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:43,286 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:43,286 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:43,286 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:43,286 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
+2025-11-10 23:09:43,286 - INFO - 
+📊 STEP 5/7: Enhanced Precision V3 AI予測システム実行
+2025-11-10 23:09:43,286 - INFO - 🔧 実行コマンド: python systems/enhanced_precision_system_v3.py
+2025-11-10 23:16:10,845 - INFO - ✅ Enhanced Precision V3 AI予測システム実行 完了 (実行時間: 387.6秒)
+2025-11-10 23:16:10,847 - INFO - 📄 実行結果 (最後の5行):
+2025-11-10 23:16:10,847 - INFO -    📊 最終精度: 0.8117
+2025-11-10 23:16:10,847 - INFO -    📈 ウォークフォワード平均精度: 0.7996
+2025-11-10 23:16:10,847 - INFO -    📁 データ統合: 成功
+2025-11-10 23:16:10,847 - INFO -    📊 データ量: 549,771件
+2025-11-10 23:16:10,847 - INFO -    🔧 特徴量数: 25個
+2025-11-10 23:16:10,847 - INFO - 
+📊 STEP 6/7: V3モデル推奨銘柄レポート生成
+2025-11-10 23:16:10,847 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_v3.py
+2025-11-10 23:16:13,633 - INFO - ✅ V3モデル推奨銘柄レポート生成 完了 (実行時間: 2.8秒)
+2025-11-10 23:16:13,633 - INFO - 📄 実行結果 (最後の5行):
+2025-11-10 23:16:13,633 - INFO -    =====================================
+2025-11-10 23:16:13,633 - INFO -    🤖 使用モデル: Enhanced Precision System V3
+2025-11-10 23:16:13,634 - INFO -    🎯 モデル精度: 81.17%
+2025-11-10 23:16:13,634 - INFO -    📊 特徴量数: 25個
+2025-11-10 23:16:13,634 - INFO -    📅 レポート生成: 2025-11-10 23:16:13
+2025-11-10 23:16:13,634 - INFO - 
+📊 STEP 7/7: V3直近精度モニター実行
+2025-11-10 23:16:13,634 - INFO - 🔧 実行コマンド: python analysis/monitor_v3_recent_performance.py --windows 6
+2025-11-10 23:16:13,841 - INFO - ✅ 精度モニター完了 (実行時間: 0.2秒) - 精度は正常範囲内です
+2025-11-10 23:16:13,841 - INFO - 
 ============================================================
-2025-11-06 21:52:39,670 - INFO - 📊 日次自動実行 完了サマリー
-2025-11-06 21:52:39,670 - INFO - ============================================================
-2025-11-06 21:52:39,670 - INFO - ⏰ 開始時刻: 2025-11-06 21:43:04
-2025-11-06 21:52:39,670 - INFO - ⏰ 終了時刻: 2025-11-06 21:52:39
-2025-11-06 21:52:39,670 - INFO - ⏱️  総実行時間: 0:09:35
-2025-11-06 21:52:39,670 - INFO - 📊 分析対象日: 2025-11-06
-2025-11-06 21:52:39,670 - INFO - 🎯 推奨取引日: 2025-11-07
-2025-11-06 21:52:39,670 - INFO - 
-📋 実行結果: 5/5 成功
-2025-11-06 21:52:39,670 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
-2025-11-06 21:52:39,670 - INFO -    STEP 2: データ取得 - ✅ 成功
-2025-11-06 21:52:39,670 - INFO -    STEP 3: 外部データ統合 - ✅ 成功
-2025-11-06 21:52:39,670 - INFO -    STEP 4: AI予測 - ✅ 成功
-2025-11-06 21:52:39,670 - INFO -    STEP 5: 推奨レポート - ✅ 成功
-2025-11-06 21:52:39,670 - INFO - 
+2025-11-10 23:16:13,841 - INFO - 📊 日次自動実行 完了サマリー
+2025-11-10 23:16:13,841 - INFO - ============================================================
+2025-11-10 23:16:13,841 - INFO - ⏰ 開始時刻: 2025-11-10 23:08:02
+2025-11-10 23:16:13,842 - INFO - ⏰ 終了時刻: 2025-11-10 23:16:13
+2025-11-10 23:16:13,842 - INFO - ⏱️  総実行時間: 0:08:11
+2025-11-10 23:16:13,842 - INFO - 📊 分析対象日: 2025-11-10
+2025-11-10 23:16:13,842 - INFO - 🎯 推奨取引日: 2025-11-11
+2025-11-10 23:16:13,842 - INFO - 
+📋 実行結果: 7/7 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 2: データ取得 - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 3: 外部特徴量更新 - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 4: 外部データ統合 - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 5: AI予測 - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 6: 推奨レポート - ✅ 成功
+2025-11-10 23:16:13,842 - INFO -    STEP 7: 精度モニター - ✅ 成功
+2025-11-10 23:16:13,842 - INFO - 
 🎉 全ステップが正常に完了しました！
-2025-11-06 21:52:39,670 - INFO - 📈 2025-11-07の推奨銘柄レポートを確認してください
-2025-11-06 21:52:39,670 - INFO - 📂 レポート: production_reports/2025-11/2025-11-06.md
-2025-11-06 21:52:39,670 - INFO - ============================================================
+2025-11-10 23:16:13,842 - INFO - 📈 2025-11-11の推奨銘柄レポートを確認してください
+2025-11-10 23:16:13,842 - INFO - 📂 レポート: production_reports/2025-11/2025-11-10.md
+2025-11-10 23:16:13,842 - INFO - ============================================================
+2025-11-11 21:31:37,545 - INFO - ============================================================
+2025-11-11 21:31:37,545 - INFO - 🚀 日次AI株式取引システム 自動実行開始
+2025-11-11 21:31:37,546 - INFO - ⏰ 実行開始時刻: 2025-11-11 21:31:37
+2025-11-11 21:31:37,546 - INFO - 📊 分析対象日: 2025-11-11
+2025-11-11 21:31:37,546 - INFO - 🎯 推奨取引日: 2025-11-12
+2025-11-11 21:31:37,546 - INFO - ============================================================
+2025-11-11 21:31:37,546 - INFO - 🔍 実行環境確認中...
+2025-11-11 21:31:37,546 - INFO - ✅ 実行環境確認完了
+2025-11-11 21:31:37,546 - INFO - 
+📊 STEP 1/7: データヘルスチェック
+2025-11-11 21:31:37,546 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
+2025-11-11 21:31:40,877 - INFO - ✅ データヘルスチェック 完了 (実行時間: 3.3秒)
+2025-11-11 21:31:40,877 - INFO - 📄 実行結果:
+2025-11-11 21:31:40,877 - INFO -    {"text": "2025-11-11T21:31:40.682501+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:02.292976", "seconds": 2.292976}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251110_230903.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 54017, "name": "MainProcess"}, "thread": {"id": 8676885056, "name": "MainThread"}, "time": {"repr": "2025-11-11 21:31:40.682501+09:00", "timestamp": 1762864300.682501}}}
+2025-11-11 21:31:40,878 - INFO - 
+📊 STEP 2/7: 日経225全銘柄データ取得 (J-Quants API)
+2025-11-11 21:31:40,878 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
+2025-11-11 21:32:38,546 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 57.7秒)
+2025-11-11 21:32:38,547 - INFO - 📄 実行結果 (最後の5行):
+2025-11-11 21:32:38,547 - INFO -    
+2025-11-11 21:32:38,547 - INFO -    📈 マッチング手法別統計:
+2025-11-11 21:32:38,547 - INFO -                 銘柄数   レコード数
+2025-11-11 21:32:38,547 - INFO -    MatchMethod             
+2025-11-11 21:32:38,547 - INFO -    直接コード一致(5桁)  228  550003
+2025-11-11 21:32:38,548 - INFO - 
+📊 STEP 3/7: 外部特徴量更新 (信用残・ニュースRSS)
+2025-11-11 21:32:38,548 - INFO - 🔧 実行コマンド: python data_management/update_external_features.py
+2025-11-11 21:33:08,239 - INFO - ✅ 外部特徴量更新 (信用残・ニュースRSS) 完了 (実行時間: 29.7秒)
+2025-11-11 21:33:08,240 - INFO - 📄 実行結果 (最後の5行):
+2025-11-11 21:33:08,240 - INFO -    1 Failed download:
+2025-11-11 21:33:08,240 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:08,240 - INFO -    
+2025-11-11 21:33:08,240 - INFO -    1 Failed download:
+2025-11-11 21:33:08,241 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:08,241 - INFO - 
+📊 STEP 4/7: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
+2025-11-11 21:33:08,241 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
+2025-11-11 21:33:17,078 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 8.8秒)
+2025-11-11 21:33:17,080 - INFO - 📄 実行結果 (最後の5行):
+2025-11-11 21:33:17,080 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:17,080 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:17,080 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:17,080 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:17,080 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
+2025-11-11 21:33:17,080 - INFO - 
+📊 STEP 5/7: Enhanced Precision V3 AI予測システム実行
+2025-11-11 21:33:17,080 - INFO - 🔧 実行コマンド: python systems/enhanced_precision_system_v3.py
+2025-11-11 21:39:55,467 - INFO - ✅ Enhanced Precision V3 AI予測システム実行 完了 (実行時間: 398.4秒)
+2025-11-11 21:39:55,469 - INFO - 📄 実行結果 (最後の5行):
+2025-11-11 21:39:55,469 - INFO -    📊 最終精度: 0.8120
+2025-11-11 21:39:55,469 - INFO -    📈 ウォークフォワード平均精度: 0.8000
+2025-11-11 21:39:55,469 - INFO -    📁 データ統合: 成功
+2025-11-11 21:39:55,469 - INFO -    📊 データ量: 549,778件
+2025-11-11 21:39:55,469 - INFO -    🔧 特徴量数: 25個
+2025-11-11 21:39:55,469 - INFO - 
+📊 STEP 6/7: V3モデル推奨銘柄レポート生成
+2025-11-11 21:39:55,469 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_v3.py
+2025-11-11 21:39:58,245 - INFO - ✅ V3モデル推奨銘柄レポート生成 完了 (実行時間: 2.8秒)
+2025-11-11 21:39:58,245 - INFO - 📄 実行結果 (最後の5行):
+2025-11-11 21:39:58,245 - INFO -    =====================================
+2025-11-11 21:39:58,245 - INFO -    🤖 使用モデル: Enhanced Precision System V3
+2025-11-11 21:39:58,245 - INFO -    🎯 モデル精度: 81.20%
+2025-11-11 21:39:58,246 - INFO -    📊 特徴量数: 25個
+2025-11-11 21:39:58,246 - INFO -    📅 レポート生成: 2025-11-11 21:39:58
+2025-11-11 21:39:58,246 - INFO - 
+📊 STEP 7/7: V3直近精度モニター実行
+2025-11-11 21:39:58,246 - INFO - 🔧 実行コマンド: python analysis/monitor_v3_recent_performance.py --windows 6
+2025-11-11 21:39:58,454 - INFO - ✅ 精度モニター完了 (実行時間: 0.2秒) - 精度は正常範囲内です
+2025-11-11 21:39:58,455 - INFO - 
+============================================================
+2025-11-11 21:39:58,455 - INFO - 📊 日次自動実行 完了サマリー
+2025-11-11 21:39:58,455 - INFO - ============================================================
+2025-11-11 21:39:58,455 - INFO - ⏰ 開始時刻: 2025-11-11 21:31:37
+2025-11-11 21:39:58,455 - INFO - ⏰ 終了時刻: 2025-11-11 21:39:58
+2025-11-11 21:39:58,455 - INFO - ⏱️  総実行時間: 0:08:20
+2025-11-11 21:39:58,455 - INFO - 📊 分析対象日: 2025-11-11
+2025-11-11 21:39:58,455 - INFO - 🎯 推奨取引日: 2025-11-12
+2025-11-11 21:39:58,455 - INFO - 
+📋 実行結果: 7/7 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 2: データ取得 - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 3: 外部特徴量更新 - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 4: 外部データ統合 - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 5: AI予測 - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 6: 推奨レポート - ✅ 成功
+2025-11-11 21:39:58,455 - INFO -    STEP 7: 精度モニター - ✅ 成功
+2025-11-11 21:39:58,455 - INFO - 
+🎉 全ステップが正常に完了しました！
+2025-11-11 21:39:58,455 - INFO - 📈 2025-11-12の推奨銘柄レポートを確認してください
+2025-11-11 21:39:58,455 - INFO - 📂 レポート: production_reports/2025-11/2025-11-11.md
+2025-11-11 21:39:58,456 - INFO - ============================================================
+2025-11-12 21:19:48,511 - INFO - ============================================================
+2025-11-12 21:19:48,512 - INFO - 🚀 日次AI株式取引システム 自動実行開始
+2025-11-12 21:19:48,512 - INFO - ⏰ 実行開始時刻: 2025-11-12 21:19:48
+2025-11-12 21:19:48,512 - INFO - 📊 分析対象日: 2025-11-12
+2025-11-12 21:19:48,512 - INFO - 🎯 推奨取引日: 2025-11-13
+2025-11-12 21:19:48,512 - INFO - ============================================================
+2025-11-12 21:19:48,512 - INFO - 🔍 実行環境確認中...
+2025-11-12 21:19:48,512 - INFO - ✅ 実行環境確認完了
+2025-11-12 21:19:48,512 - INFO - 
+📊 STEP 1/7: データヘルスチェック
+2025-11-12 21:19:48,512 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
+2025-11-12 21:19:51,645 - INFO - ✅ データヘルスチェック 完了 (実行時間: 3.1秒)
+2025-11-12 21:19:51,646 - INFO - 📄 実行結果:
+2025-11-12 21:19:51,646 - INFO -    {"text": "2025-11-12T21:19:51.464111+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:02.159928", "seconds": 2.159928}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251111_213237.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 56177, "name": "MainProcess"}, "thread": {"id": 8661975616, "name": "MainThread"}, "time": {"repr": "2025-11-12 21:19:51.464111+09:00", "timestamp": 1762949991.464111}}}
+2025-11-12 21:19:51,646 - INFO - 
+📊 STEP 2/7: 日経225全銘柄データ取得 (J-Quants API)
+2025-11-12 21:19:51,646 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
+2025-11-12 21:20:51,794 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 60.1秒)
+2025-11-12 21:20:51,795 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 21:20:51,795 - INFO -    
+2025-11-12 21:20:51,796 - INFO -    📈 マッチング手法別統計:
+2025-11-12 21:20:51,796 - INFO -                 銘柄数   レコード数
+2025-11-12 21:20:51,796 - INFO -    MatchMethod             
+2025-11-12 21:20:51,796 - INFO -    直接コード一致(5桁)  228  550231
+2025-11-12 21:20:51,796 - INFO - 
+📊 STEP 3/7: 外部特徴量更新 (信用残・ニュースRSS)
+2025-11-12 21:20:51,796 - INFO - 🔧 実行コマンド: python data_management/update_external_features.py
+2025-11-12 21:21:33,367 - INFO - ✅ 外部特徴量更新 (信用残・ニュースRSS) 完了 (実行時間: 41.6秒)
+2025-11-12 21:21:33,368 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 21:21:33,368 - INFO -    1 Failed download:
+2025-11-12 21:21:33,368 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:33,368 - INFO -    
+2025-11-12 21:21:33,368 - INFO -    1 Failed download:
+2025-11-12 21:21:33,368 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:33,368 - INFO - 
+📊 STEP 4/7: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
+2025-11-12 21:21:33,368 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
+2025-11-12 21:21:42,942 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 9.6秒)
+2025-11-12 21:21:42,943 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 21:21:42,943 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:42,943 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:42,943 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:42,943 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:42,943 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
+2025-11-12 21:21:42,943 - INFO - 
+📊 STEP 5/7: Enhanced Precision V3 AI予測システム実行
+2025-11-12 21:21:42,943 - INFO - 🔧 実行コマンド: python systems/enhanced_precision_system_v3.py
+2025-11-12 21:30:18,080 - INFO - ✅ Enhanced Precision V3 AI予測システム実行 完了 (実行時間: 515.1秒)
+2025-11-12 21:30:18,082 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 21:30:18,082 - INFO -    📊 最終精度: 0.8115
+2025-11-12 21:30:18,082 - INFO -    📈 ウォークフォワード平均精度: 0.8000
+2025-11-12 21:30:18,082 - INFO -    📁 データ統合: 成功
+2025-11-12 21:30:18,082 - INFO -    📊 データ量: 550,006件
+2025-11-12 21:30:18,082 - INFO -    🔧 特徴量数: 25個
+2025-11-12 21:30:18,082 - INFO - 
+📊 STEP 6/7: V3モデル推奨銘柄レポート生成
+2025-11-12 21:30:18,082 - INFO - 🔧 実行コマンド: python reports/daily_stock_recommendation_v3.py
+2025-11-12 21:30:21,405 - INFO - ✅ V3モデル推奨銘柄レポート生成 完了 (実行時間: 3.3秒)
+2025-11-12 21:30:21,406 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 21:30:21,406 - INFO -    =====================================
+2025-11-12 21:30:21,406 - INFO -    🤖 使用モデル: Enhanced Precision System V3
+2025-11-12 21:30:21,406 - INFO -    🎯 モデル精度: 81.15%
+2025-11-12 21:30:21,406 - INFO -    📊 特徴量数: 25個
+2025-11-12 21:30:21,406 - INFO -    📅 レポート生成: 2025-11-12 21:30:21
+2025-11-12 21:30:21,406 - INFO - 
+📊 STEP 7/7: V3直近精度モニター実行
+2025-11-12 21:30:21,406 - INFO - 🔧 実行コマンド: python analysis/monitor_v3_recent_performance.py --windows 6
+2025-11-12 21:30:21,624 - INFO - ✅ 精度モニター完了 (実行時間: 0.2秒) - 精度は正常範囲内です
+2025-11-12 21:30:21,624 - INFO - 
+============================================================
+2025-11-12 21:30:21,624 - INFO - 📊 日次自動実行 完了サマリー
+2025-11-12 21:30:21,624 - INFO - ============================================================
+2025-11-12 21:30:21,624 - INFO - ⏰ 開始時刻: 2025-11-12 21:19:48
+2025-11-12 21:30:21,624 - INFO - ⏰ 終了時刻: 2025-11-12 21:30:21
+2025-11-12 21:30:21,624 - INFO - ⏱️  総実行時間: 0:10:33
+2025-11-12 21:30:21,624 - INFO - 📊 分析対象日: 2025-11-12
+2025-11-12 21:30:21,624 - INFO - 🎯 推奨取引日: 2025-11-13
+2025-11-12 21:30:21,624 - INFO - 
+📋 実行結果: 7/7 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 1: データヘルスチェック - ✅ 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 2: データ取得 - ✅ 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 3: 外部特徴量更新 - ✅ 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 4: 外部データ統合 - ✅ 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 5: AI予測 - ✅ 成功
+2025-11-12 21:30:21,624 - INFO -    STEP 6: 推奨レポート - ✅ 成功
+2025-11-12 21:30:21,625 - INFO -    STEP 7: 精度モニター - ✅ 成功
+2025-11-12 21:30:21,625 - INFO - 
+🎉 全ステップが正常に完了しました！
+2025-11-12 21:30:21,625 - INFO - 📈 2025-11-13の推奨銘柄レポートを確認してください
+2025-11-12 21:30:21,625 - INFO - 📂 レポート: production_reports/2025-11/2025-11-12.md
+2025-11-12 21:30:21,625 - INFO - ============================================================
+2025-11-12 23:04:03,556 - INFO - ============================================================
+2025-11-12 23:04:03,556 - INFO - 🚀 日次AI株式取引システム 自動実行開始
+2025-11-12 23:04:03,556 - INFO - ⏰ 実行開始時刻: 2025-11-12 23:04:03
+2025-11-12 23:04:03,557 - INFO - 📊 分析対象日: 2025-11-12
+2025-11-12 23:04:03,557 - INFO - 🎯 推奨取引日: 2025-11-13
+2025-11-12 23:04:03,557 - INFO - ============================================================
+2025-11-12 23:04:03,557 - INFO - 🔍 実行環境確認中...
+2025-11-12 23:04:03,557 - INFO - ✅ 実行環境確認完了
+2025-11-12 23:04:03,557 - INFO - 
+📊 STEP 1/7: データヘルスチェック
+2025-11-12 23:04:03,557 - INFO - 🔧 実行コマンド: python data_management/data_health_check.py --registry data/data_registry.json
+2025-11-12 23:04:06,180 - INFO - ✅ データヘルスチェック 完了 (実行時間: 2.6秒)
+2025-11-12 23:04:06,180 - INFO - 📄 実行結果:
+2025-11-12 23:04:06,180 - INFO -    {"text": "2025-11-12T23:04:06.015741+0900 | INFO | utils.logger:info:122 - Data health check passed\n", "record": {"elapsed": {"repr": "0:00:01.935877", "seconds": 1.935877}, "exception": null, "extra": {"stock_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/nikkei225_complete_225stocks_20251112_212050.parquet", "external_file": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/data/processed/enhanced_integrated_data.parquet", "overall_status": "pass", "stock_coverage": true, "price_non_negative": true, "duplicate_rows": true, "trading_day_gaps": false, "external_null_ratio": "True"}, "file": {"name": "logger.py", "path": "/Users/naoya/Desktop/AI関係/自動売買ツール/claude_code_develop/utils/logger.py"}, "function": "info", "level": {"icon": "ℹ️", "name": "INFO", "no": 20}, "line": 122, "message": "Data health check passed", "module": "logger", "name": "utils.logger", "process": {"id": 65637, "name": "MainProcess"}, "thread": {"id": 8601252416, "name": "MainThread"}, "time": {"repr": "2025-11-12 23:04:06.015741+09:00", "timestamp": 1762956246.015741}}}
+2025-11-12 23:04:06,181 - INFO - 
+📊 STEP 2/7: 日経225全銘柄データ取得 (J-Quants API)
+2025-11-12 23:04:06,181 - INFO - 🔧 実行コマンド: python data_management/nikkei225_complete_parallel_fetcher.py
+2025-11-12 23:05:02,541 - INFO - ✅ 日経225全銘柄データ取得 (J-Quants API) 完了 (実行時間: 56.4秒)
+2025-11-12 23:05:02,541 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 23:05:02,541 - INFO -    
+2025-11-12 23:05:02,541 - INFO -    📈 マッチング手法別統計:
+2025-11-12 23:05:02,541 - INFO -                 銘柄数   レコード数
+2025-11-12 23:05:02,541 - INFO -    MatchMethod             
+2025-11-12 23:05:02,541 - INFO -    直接コード一致(5桁)  228  550231
+2025-11-12 23:05:02,541 - INFO - 
+📊 STEP 3/7: 外部特徴量更新 (信用残・ニュースRSS)
+2025-11-12 23:05:02,542 - INFO - 🔧 実行コマンド: python data_management/update_external_features.py
+2025-11-12 23:05:06,420 - INFO - ✅ 外部特徴量更新 (信用残・ニュースRSS) 完了 (実行時間: 3.9秒)
+2025-11-12 23:05:06,420 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 23:05:06,420 - INFO -    1 Failed download:
+2025-11-12 23:05:06,421 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:06,421 - INFO -    
+2025-11-12 23:05:06,421 - INFO -    1 Failed download:
+2025-11-12 23:05:06,421 - INFO -    - NIY=F: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:06,421 - INFO - 
+📊 STEP 4/7: 外部市場データ統合 (USD/JPY, VIX, S&P500等)
+2025-11-12 23:05:06,421 - INFO - 🔧 実行コマンド: python data_management/enhanced_data_integration.py
+2025-11-12 23:05:15,619 - INFO - ✅ 外部市場データ統合 (USD/JPY, VIX, S&P500等) 完了 (実行時間: 9.2秒)
+2025-11-12 23:05:15,620 - INFO - 📄 実行結果 (最後の5行):
+2025-11-12 23:05:15,620 - INFO -    ^TNX: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:15,620 - INFO -    JPY=X: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:15,620 - INFO -    ^DJI: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:15,620 - INFO -    ^GSPC: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:15,620 - INFO -    ^IXIC: No data found for this date range, symbol may be delisted
+2025-11-12 23:05:15,620 - INFO - 
+📊 STEP 5/7: Enhanced Precision V3 AI予測システム実行
+2025-11-12 23:05:15,620 - INFO - 🔧 実行コマンド: python systems/enhanced_precision_system_v3.py
+2025-11-12 23:06:11,154 - INFO - 
+🛑 ユーザーにより実行が中断されました

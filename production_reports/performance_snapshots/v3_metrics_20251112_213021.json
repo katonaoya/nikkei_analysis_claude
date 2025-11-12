@@ -1,0 +1,17 @@
+{
+  "source_file": "models/enhanced_v3/enhanced_results_v3_20251112_213017.joblib",
+  "analysis_date": "2025-11-12T21:30:21.604368",
+  "windows_analyzed": 6,
+  "total_windows": 92,
+  "recent_mean_accuracy": 0.7900306321358953,
+  "recent_mean_precision": 0.809466564565942,
+  "recent_precision_min": 0.7775405636208369,
+  "recent_precision_max": 0.8352985926207683,
+  "recent_accuracy_min": 0.7713032581453634,
+  "recent_accuracy_max": 0.8038847117794486,
+  "final_model_accuracy": 0.8115306994418283,
+  "wfo_mean_accuracy": 0.8000253365891159,
+  "last_period": "2025-10-03 to 2025-11-05",
+  "last_accuracy": 0.7905179615705932,
+  "last_precision": 0.8007633587786259
+}

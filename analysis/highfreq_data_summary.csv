@@ -1,0 +1,2 @@
+rows,start_date,end_date,correlation_vs_returns,source_file
+5,2025-10-20T00:00:00,2025-10-24T00:00:00,,data/external/highfreq_market/highfreq_features_seed.parquet

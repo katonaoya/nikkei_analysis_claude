@@ -1,0 +1,57 @@
+[
+  {
+    "rank": 1,
+    "code": 74530,
+    "name": "（株）良品計画",
+    "close_str": "¥2,788",
+    "target_str": "¥2,816",
+    "stop_str": "¥2,760",
+    "prob_pct": "41.7%",
+    "status": "(閾値達成)",
+    "volume_str": "19,839,000株"
+  },
+  {
+    "rank": 2,
+    "code": 72050,
+    "name": "日野自動車（株）",
+    "close_str": "¥373.6",
+    "target_str": "¥377",
+    "stop_str": "¥370",
+    "prob_pct": "39.7%",
+    "status": "(閾値未達)",
+    "volume_str": "5,042,100株"
+  },
+  {
+    "rank": 3,
+    "code": 77310,
+    "name": "（株）ニコン",
+    "close_str": "¥1,818",
+    "target_str": "¥1,836",
+    "stop_str": "¥1,800",
+    "prob_pct": "39.7%",
+    "status": "(閾値未達)",
+    "volume_str": "1,901,900株"
+  },
+  {
+    "rank": 4,
+    "code": 72010,
+    "name": "日産自動車（株）",
+    "close_str": "¥358.1",
+    "target_str": "¥362",
+    "stop_str": "¥355",
+    "prob_pct": "39.5%",
+    "status": "(閾値未達)",
+    "volume_str": "25,345,800株"
+  },
+  {
+    "rank": 5,
+    "code": 70120,
+    "name": "川崎重工業（株）",
+    "close_str": "¥9,723",
+    "target_str": "¥9,820",
+    "stop_str": "¥9,626",
+    "prob_pct": "39.4%",
+    "status": "(閾値未達)",
+    "volume_str": "5,367,800株"
+  }
+]

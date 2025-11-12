@@ -1,0 +1,17 @@
+{
+  "margin": {
+    "total_codes": 166,
+    "missing_codes": 2,
+    "min_days_available": 0,
+    "max_days_available": 29
+  },
+  "highfreq": [
+    {
+      "rows": 5,
+      "start_date": "2025-10-20T00:00:00",
+      "end_date": "2025-10-24T00:00:00",
+      "correlation_vs_returns": NaN,
+      "source_file": "data/external/highfreq_market/highfreq_features_seed.parquet"
+    }
+  ]
+}
