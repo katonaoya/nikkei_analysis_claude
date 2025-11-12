@@ -1,0 +1,20 @@
+# Sample cron entry for codex_history_watchdog.sh
+# Copy to your crontab after adjusting paths and thresholds.
+
+SHELL=/bin/zsh
+PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin
+REPO_ROOT=/path/to/claude_code_develop
+
+# Run watchdog 5 minutes after codex_loop nightly job
+# Backfilled entries are excluded to avoid false positives after recovery runs.
+35 23 * * * cd "$REPO_ROOT" && \
+  /bin/zsh "$REPO_ROOT"/scripts/codex_history_watchdog.sh \
+    -H results/codex_cli_runs/run_history.jsonl \
+    -L nightly \
+    -a 6 \
+    -m 1 \
+    -p 3 \
+    -u 3 \
+    -B exclude \
+    -F \
+    -R >> logs/codex_loop/watchdog_stdout.log 2>&1

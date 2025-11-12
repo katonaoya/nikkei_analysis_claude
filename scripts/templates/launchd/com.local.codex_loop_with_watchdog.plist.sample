@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.local.codex_loop_with_watchdog</string>
+
+  <!-- Run every day at 23:30 -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>23</integer>
+    <key>Minute</key><integer>30</integer>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/path/to/claude_code_develop</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>RUN_LABEL</key><string>nightly</string>
+    <key>EXTRA_ARGS</key><string>--approvals full --max-output 2</string>
+    <!-- Uncomment to skip watchdog when codex_loop fails -->
+    <!-- <key>WATCHDOG_SKIP_ON_FAILURE</key><string>1</string> -->
+  </dict>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>scripts/codex_loop_watchdog_runner.sh</string>
+    <string>-p</string>
+    <string>docment/codex_docs/codex_loop_prompts.sample.txt</string>
+    <string>-o</string>
+    <string>results/codex_cli_runs</string>
+    <string>-l</string>
+    <string>logs/codex_loop</string>
+    <string>-H</string>
+    <string>logs/codex_loop/run_history.jsonl</string>
+    <string>-f</string>
+    <string>--</string>
+    <string>-L</string>
+    <string>nightly</string>
+    <string>-a</string>
+    <string>6</string>
+    <string>-m</string>
+    <string>1</string>
+    <string>-p</string>
+    <string>3</string>
+    <string>-u</string>
+    <string>3</string>
+    <string>-B</string>
+    <string>exclude</string>
+    <string>-F</string>
+    <string>-R</string>
+  </array>
+
+  <key>StandardOutPath</key>
+  <string>/path/to/claude_code_develop/logs/codex_loop/launchd_combo_stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/path/to/claude_code_develop/logs/codex_loop/launchd_combo_stderr.log</string>
+</dict>
+</plist>

@@ -1,0 +1,99 @@
+name: Daily Trading Automation
+
+on:
+  workflow_dispatch:  # 手動実行
+  schedule:
+    # 平日 22:00 JST に実行（UTC は 13:00）
+    - cron: "0 13 * * 1-5"
+
+jobs:
+  run:
+    # macOS Accelerate 等に強く依存しない限り Ubuntu でOK
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Skip on weekends in JST
+        run: |
+          dow=$(TZ=Asia/Tokyo date +%u)
+          if [ "$dow" -gt 5 ]; then
+            echo "Weekend in JST, skipping."
+            exit 0
+          fi
+
+      - name: Create .env from secrets
+        run: |
+          {
+            echo "JQUANTS_EMAIL=${{ secrets.JQUANTS_EMAIL }}"
+            echo "JQUANTS_PASSWORD=${{ secrets.JQUANTS_PASSWORD }}"
+          } > .env
+
+      # 必要なら事前にテストを走らせる（推奨・任意）
+      # - name: Run tests
+      #   run: pytest -q
+
+      - name: Run daily automation
+        run: |
+          python daily_trading_automation.py
+
+      - name: Upload reports and data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production_outputs-${{ github.run_id }}
+          path: |
+            production_reports/
+            production_data/
+          if-no-files-found: ignore
+
+      # メール通知（成功時）
+      - name: Send success email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "✅ Daily Trading Success: ${{ github.repository }} (#${{ github.run_number }})"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+          secure: true
+          body: |
+            成功: ${{ github.workflow }} @ ${{ github.ref_name }}
+            実行URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # メール通知（失敗時）
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "❌ Daily Trading FAILED: ${{ github.repository }} (#${{ github.run_number }})"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+          secure: true
+          body: |
+            失敗: ${{ github.workflow }} @ ${{ github.ref_name }}
+            実行URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.local.codex_history_watchdog</string>
+
+  <!-- Run every day at 23:35 -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>23</integer>
+    <key>Minute</key><integer>35</integer>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/path/to/claude_code_develop</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHON_BIN</key><string>/usr/bin/python3</string>
+  </dict>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>scripts/codex_history_watchdog.sh</string>
+    <string>-H</string>
+    <string>results/codex_cli_runs/run_history.jsonl</string>
+    <string>-L</string>
+    <string>nightly</string>
+    <string>-a</string>
+    <string>6</string>
+    <string>-m</string>
+    <string>1</string>
+    <string>-p</string>
+    <string>3</string>
+    <string>-u</string>
+    <string>3</string>
+    <string>-B</string>
+    <string>exclude</string>
+    <string>-F</string>
+    <string>-R</string>
+  </array>
+
+  <key>StandardOutPath</key>
+  <string>/path/to/claude_code_develop/logs/codex_loop/watchdog_stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/path/to/claude_code_develop/logs/codex_loop/watchdog_stderr.log</string>
+</dict>
+</plist>

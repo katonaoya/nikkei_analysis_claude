@@ -35,7 +35,7 @@ class DailyTradingAutomation:
         self.start_time = datetime.now()
         self.base_dir = Path(__file__).parent
         self.success_count = 0
-        self.total_steps = 6
+        self.total_steps = 7
         
         # 分析対象日を決定
         self.target_date = JapanMarketCalendar.get_target_date_for_analysis(self.start_time)
@@ -48,7 +48,7 @@ class DailyTradingAutomation:
         logger.info(f"🎯 推奨取引日: {self.next_date.strftime('%Y-%m-%d')}")
         logger.info("="*60)
     
-    def run_command(self, command: str, description: str, timeout: int = 1800) -> bool:
+    def run_command(self, command: str, description: str, timeout: int = 1800, show_full_output: bool = False) -> bool:
         """コマンド実行"""
         logger.info(f"\n📊 STEP {self.success_count + 1}/{self.total_steps}: {description}")
         logger.info(f"🔧 実行コマンド: {command}")
@@ -68,17 +68,22 @@ class DailyTradingAutomation:
             elapsed = time.time() - start
             logger.info(f"✅ {description} 完了 (実行時間: {elapsed:.1f}秒)")
             
-            # 出力があれば最後の数行を表示
+            # 出力があれば表示
             if result.stdout.strip():
-                lines = result.stdout.strip().split('\n')
-                if len(lines) > 5:
-                    logger.info("📄 実行結果 (最後の5行):")
-                    for line in lines[-5:]:
-                        logger.info(f"   {line}")
+                if show_full_output:
+                    # 全出力をそのまま表示（モニタースクリプト用）
+                    print(result.stdout)
                 else:
-                    logger.info("📄 実行結果:")
-                    for line in lines:
-                        logger.info(f"   {line}")
+                    # 最後の数行のみ表示
+                    lines = result.stdout.strip().split('\n')
+                    if len(lines) > 5:
+                        logger.info("📄 実行結果 (最後の5行):")
+                        for line in lines[-5:]:
+                            logger.info(f"   {line}")
+                    else:
+                        logger.info("📄 実行結果:")
+                        for line in lines:
+                            logger.info(f"   {line}")
             
             self.success_count += 1
             return True
@@ -148,19 +153,67 @@ class DailyTradingAutomation:
         
         # STEP 5: Enhanced V3 AI予測実行
         success = self.run_command(
-            "python systems/enhanced_close_return_system_v1.py --calibration-method none",
-            "Close-to-Close V1 AI予測システム実行 (終値→終値)",
+            "python systems/enhanced_precision_system_v3.py",
+            "Enhanced Precision V3 AI予測システム実行",
             timeout=1200  # 20分
         )
         results.append(("AI予測", success))
 
         # STEP 6: 日次推奨銘柄レポート生成
         success = self.run_command(
-            "python reports/daily_stock_recommendation_close_v1.py",
-            "終値ベース推奨銘柄レポート生成",
+            "python reports/daily_stock_recommendation_v3.py",
+            "V3モデル推奨銘柄レポート生成",
             timeout=300  # 5分
         )
         results.append(("推奨レポート", success))
+        
+        # STEP 7: V3直近精度モニター
+        if success:
+            # レポート生成が成功した場合のみモニターを実行
+            logger.info(f"\n📊 STEP {self.success_count + 1}/{self.total_steps}: V3直近精度モニター実行")
+            logger.info("🔧 実行コマンド: python analysis/monitor_v3_recent_performance.py --windows 6")
+            
+            start = time.time()
+            try:
+                result = subprocess.run(
+                    "python analysis/monitor_v3_recent_performance.py --windows 6",
+                    shell=True,
+                    check=False,  # アラートがあってもエラーとして扱わない
+                    capture_output=True,
+                    text=True,
+                    cwd=self.base_dir,
+                    timeout=60
+                )
+                
+                elapsed = time.time() - start
+                
+                # 出力を表示
+                if result.stdout.strip():
+                    print(result.stdout)
+                
+                # 終了コードに関わらず実行できれば成功とする
+                monitor_success = result.returncode == 0 or result.returncode == 1  # 0=正常, 1=アラートあり
+                
+                if result.returncode == 1:
+                    logger.warning(f"⚠️  精度モニター完了 (実行時間: {elapsed:.1f}秒) - アラートが検出されました（処理は続行します）")
+                elif result.returncode == 0:
+                    logger.info(f"✅ 精度モニター完了 (実行時間: {elapsed:.1f}秒) - 精度は正常範囲内です")
+                else:
+                    logger.warning(f"⚠️  精度モニターが予期しない終了コード {result.returncode} で終了しました (実行時間: {elapsed:.1f}秒)")
+                
+                self.success_count += 1
+                results.append(("精度モニター", monitor_success))
+            except subprocess.TimeoutExpired:
+                elapsed = time.time() - start
+                logger.warning(f"⏰ 精度モニターがタイムアウトしました (実行時間: {elapsed:.1f}秒) - 処理は続行します")
+                results.append(("精度モニター", False))
+            except Exception as e:
+                elapsed = time.time() - start if 'start' in locals() else 0
+                logger.warning(f"精度モニター実行中にエラーが発生しましたが、処理を続行します (実行時間: {elapsed:.1f}秒): {e}")
+                results.append(("精度モニター", False))
+        else:
+            logger.warning("レポート生成が失敗したため、精度モニターをスキップします")
+            results.append(("精度モニター", False))
         
         # 実行結果サマリー
         self.show_summary(results)
